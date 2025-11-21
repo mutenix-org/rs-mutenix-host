@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2025 Matthias Bilger <matthias@bilger.info>
 
-mod actions;
 mod app;
 
-use actions::execute_button_actions;
 use anyhow::{Context, Result};
 use app::{AppState, DeviceStatus, LogLevel, TeamsStatus};
-use lib_base::{Config, TeamsStateType};
+use lib_base::{Config, TeamsStateType, execute_button_actions};
 use mutenix_hid::{
     ConnectionState as DeviceConnectionState, DeviceMessage, HidDevice, LedColor, SetLed,
 };
@@ -216,7 +214,7 @@ impl MutenixUi {
                                     is_long_press,
                                     button_id,
                                     teams_client.clone(),
-                                    app_state.clone(),
+                                    Arc::new(app_state.clone()),
                                 )
                                 .await;
                             } else {

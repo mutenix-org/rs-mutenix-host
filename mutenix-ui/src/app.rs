@@ -2,6 +2,7 @@
 // Copyright (c) 2025 Matthias Bilger <matthias@bilger.info>
 
 use chrono::Local;
+use lib_base::ActionLogger;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 use std::sync::Arc;
@@ -160,5 +161,24 @@ impl AppState {
     #[allow(dead_code)]
     pub fn version(&self) -> &str {
         &self.version
+    }
+}
+
+// Implement ActionLogger for AppState
+impl ActionLogger for AppState {
+    async fn log_device(&self, level: lib_base::LogLevel, message: String) {
+        let app_level = match level {
+            lib_base::LogLevel::Info => LogLevel::Info,
+            lib_base::LogLevel::Error => LogLevel::Error,
+        };
+        self.add_device_log(app_level, message).await;
+    }
+
+    async fn log_teams(&self, level: lib_base::LogLevel, message: String) {
+        let app_level = match level {
+            lib_base::LogLevel::Info => LogLevel::Info,
+            lib_base::LogLevel::Error => LogLevel::Error,
+        };
+        self.add_teams_log(app_level, message).await;
     }
 }
