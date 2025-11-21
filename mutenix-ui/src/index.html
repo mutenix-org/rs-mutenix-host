@@ -18,31 +18,39 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #f5f5f5;
+            font-family: sans-serif;
+            line-height: 1.6;
+            background-color: #f4f4f4;
             color: #333;
-            padding: 20px;
+            padding: 0;
             margin: 0;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 800px;
             margin: 0 auto;
         }
 
         .header {
+            background: #666;
+            color: #fff;
+            padding: 1rem 0;
             text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 0;
         }
 
         .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 2em;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        main {
+            padding: 2rem;
         }
 
         .status-cards {
@@ -53,16 +61,16 @@
         }
 
         .card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background: #fff;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .card h2 {
-            font-size: 1.5em;
-            margin-bottom: 15px;
-            color: #667eea;
+            font-size: 1.3em;
+            margin-bottom: 1rem;
+            color: #333;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -87,7 +95,7 @@
 
         .status-info {
             display: grid;
-            gap: 10px;
+            gap: 8px;
         }
 
         .status-row {
@@ -117,19 +125,19 @@
         }
 
         .log-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background: #fff;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             max-height: 400px;
             display: flex;
             flex-direction: column;
         }
 
         .log-card h3 {
-            font-size: 1.3em;
-            margin-bottom: 15px;
-            color: #667eea;
+            font-size: 1.2em;
+            margin-bottom: 1rem;
+            color: #333;
         }
 
         .log-entries {
@@ -203,11 +211,23 @@
             color: #991b1b;
         }
 
-        .footer {
+        footer {
+            background: #333;
+            color: #fff;
             text-align: center;
-            color: white;
+            padding: 1rem 0;
+            width: 100%;
             margin-top: 30px;
-            opacity: 0.8;
+        }
+
+        footer a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            color: #ddd;
+            text-decoration: underline;
         }
 
         /* Scrollbar styling */
@@ -231,12 +251,14 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🎛️ Mutenix</h1>
-            <p>Device & Teams Control Center</p>
-        </div>
+    <div class="header">
+        <h1>Mutenix</h1>
+        <p>Device & Teams Control Center</p>
+    </div>
 
+    <div class="container">
+        <main>
+        <main>
         <div class="status-cards">
             <div class="card">
                 <h2>
@@ -299,20 +321,21 @@
 
         <div class="logs-section">
             <div class="log-card">
-                <h3>📟 Device Logs</h3>
+                <h3>Device Logs</h3>
                 <div class="log-entries" id="device-logs"></div>
             </div>
 
             <div class="log-card">
-                <h3>💬 Teams Logs</h3>
+                <h3>Teams Logs</h3>
                 <div class="log-entries" id="teams-logs"></div>
             </div>
         </div>
-
-        <div class="footer">
-            <p>Mutenix v0.1.0 • © 2025 Matthias Bilger</p>
-        </div>
+        </main>
     </div>
+
+    <footer>
+        <small>&copy; 2025 Matthias Bilger</small>
+    </footer>
 
     <script>
         // Wait for Tauri IPC to be ready

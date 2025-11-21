@@ -27,7 +27,7 @@
     },
     "trayIcon": {
       "id": "main",
-      "iconPath": "icons/icon.png",
+      "iconPath": "assets/icon_active_32.png",
       "iconAsTemplate": false,
       "tooltip": "Mutenix - Device & Teams Control"
     }
@@ -36,11 +36,11 @@
     "active": true,
     "targets": "all",
     "icon": [
-      "icons/32x32.png",
-      "icons/128x128.png",
-      "icons/128x128@2x.png",
+      "assets/icon_active_32.png",
+      "assets/icon_active_64.png",
+      "assets/mutenix_logo_finalicon_active.png",
       "icons/icon.icns",
-      "icons/icon.ico"
+      "assets/mutenix.ico"
     ],
     "publisher": "Matthias Bilger",
     "copyright": "Copyright (c) 2025 Matthias Bilger",
