@@ -372,7 +372,9 @@ impl MutenixUi {
                         let set_led_cmd = SetLed::new(led_status.button_id, color);
                         match device.send_command(set_led_cmd).await {
                             Ok(_) => {},
-                            Err(e) => {}
+                            Err(e) => {
+                                eprintln!("[LED] Failed to set LED {}: {}", led_status.button_id, e);
+                            }
                         }
                     }
                 }
@@ -395,6 +397,12 @@ async fn save_token(token_file: &PathBuf, token: &str) -> Result<()> {
     fs::write(token_file, token)
         .await
         .with_context(|| format!("Failed to write token to {:?}", token_file))
+}
+
+// Shared state for config
+struct ConfigState {
+    config: Arc<RwLock<Config>>,
+    config_path: PathBuf,
 }
 
 // Tauri commands
@@ -421,6 +429,33 @@ async fn get_teams_logs(
 ) -> Result<Vec<app::LogEntry>, String> {
     let logs = state.get_teams_logs().await;
     Ok(logs)
+}
+
+#[tauri::command]
+async fn get_config(
+    config_state: tauri::State<'_, Arc<ConfigState>>,
+) -> Result<Config, String> {
+    let config = config_state.config.read().await.clone();
+    Ok(config)
+}
+
+#[tauri::command]
+async fn save_config(
+    config_state: tauri::State<'_, Arc<ConfigState>>,
+    config: Config,
+) -> Result<(), String> {
+    // Update in-memory config
+    *config_state.config.write().await = config.clone();
+    
+    // Save to file
+    let yaml = serde_yaml::to_string(&config)
+        .map_err(|e| format!("Failed to serialize config: {}", e))?;
+    
+    tokio::fs::write(&config_state.config_path, yaml)
+        .await
+        .map_err(|e| format!("Failed to write config file: {}", e))?;
+    
+    Ok(())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -486,12 +521,19 @@ pub fn run() {
                 let token_file = PathBuf::from(TOKEN_FILE);
                 let teams_uri = TEAMS_WS_URI.to_string();
 
-                match MutenixUi::new(config_path, teams_uri, token_file).await {
+                match MutenixUi::new(config_path.clone(), teams_uri, token_file).await {
                     Ok(ui) => {
                         
                         // Register app state with Tauri BEFORE running
                         let app_state = ui.app_state.clone();
                         handle.manage(Arc::new(app_state));
+                        
+                        // Register config state
+                        let config_state = Arc::new(ConfigState {
+                            config: Arc::new(RwLock::new(ui.config.clone())),
+                            config_path: config_path.clone(),
+                        });
+                        handle.manage(config_state);
 
                         if let Err(e) = ui.run().await {
                             eprintln!("[Main] Error running Mutenix UI: {}", e);
@@ -502,7 +544,9 @@ pub fn run() {
                             tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
                         }
                     }
-                    Err(e) => {}
+                    Err(e) => {
+                        eprintln!("[Main] Error initializing Mutenix UI: {}", e);
+                    }
                 }
             });
 
@@ -511,7 +555,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_status,
             get_device_logs,
-            get_teams_logs
+            get_teams_logs,
+            get_config,
+            save_config
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mutenix</title>
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
     <script>
         // Polyfill for Tauri invoke if not available
         window.__TAURI_INVOKE__ = window.__TAURI_INVOKE__ || function(cmd, args) {
@@ -11,6 +12,15 @@
         };
     </script>
     <style>
+        :root {
+            --primary-color: #666;
+            --primary-dark: #333;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --border-color: #e5e7eb;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -18,7 +28,7 @@
         }
 
         body {
-            font-family: sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             line-height: 1.6;
             background-color: #f4f4f4;
             color: #333;
@@ -27,12 +37,12 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
         .header {
-            background: #666;
+            background: var(--primary-color);
             color: #fff;
             padding: 1rem 0;
             text-align: center;
@@ -49,31 +59,78 @@
             opacity: 0.9;
         }
 
+        /* Tab Navigation */
+        .tabs {
+            background: white;
+            border-bottom: 2px solid var(--border-color);
+            padding: 0;
+            margin-bottom: 0;
+        }
+
+        .tab-list {
+            display: flex;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .tab-button {
+            padding: 0.6rem 1.25rem;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .tab-button:hover {
+            background: #f8f8f8;
+            color: #333;
+        }
+
+        .tab-button.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
         main {
-            padding: 2rem;
+            padding: 0.5rem;
         }
 
         .status-cards {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 30px;
+            gap: 12px;
+            margin-bottom: 15px;
         }
 
         .card {
             background: #fff;
             border-radius: 8px;
-            padding: 1.5rem;
+            padding: 0.75rem;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .card h2 {
-            font-size: 1.3em;
-            margin-bottom: 1rem;
+            font-size: 1.1em;
+            margin-bottom: 0.5rem;
             color: #333;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .status-indicator {
@@ -95,13 +152,13 @@
 
         .status-info {
             display: grid;
-            gap: 8px;
+            gap: 4px;
         }
 
         .status-row {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
+            padding: 4px 0;
             border-bottom: 1px solid #f0f0f0;
         }
 
@@ -121,22 +178,22 @@
         .logs-section {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            gap: 12px;
         }
 
         .log-card {
             background: #fff;
             border-radius: 8px;
-            padding: 1.5rem;
+            padding: 0.75rem;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            max-height: 400px;
+            max-height: 300px;
             display: flex;
             flex-direction: column;
         }
 
         .log-card h3 {
-            font-size: 1.2em;
-            margin-bottom: 1rem;
+            font-size: 1.1em;
+            margin-bottom: 0.5rem;
             color: #333;
         }
 
@@ -148,7 +205,7 @@
         }
 
         .log-entry {
-            padding: 6px 0;
+            padding: 3px 0;
             border-bottom: 1px solid #f0f0f0;
         }
 
@@ -248,6 +305,278 @@
         .log-entries::-webkit-scrollbar-thumb:hover {
             background: #555;
         }
+
+        /* Config page styles */
+        .config-section {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .config-section h3 {
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.3rem;
+            border-bottom: 2px solid var(--border-color);
+            color: var(--primary-dark);
+            font-size: 1.15em;
+        }
+
+        .form-group {
+            margin-bottom: 0.75rem;
+        }
+
+        .form-group-inline {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group-inline label {
+            margin-bottom: 0;
+            white-space: nowrap;
+            min-width: fit-content;
+            font-size: 0.9rem;
+        }
+
+        .form-group-inline input,
+        .form-group-inline select,
+        .form-group-inline textarea {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .form-group-inline select {
+            max-width: 200px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.4rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 102, 102, 0.1);
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-secondary {
+            background: #9ca3af;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #6b7280;
+        }
+
+        .btn-sm {
+            padding: 0.3rem 0.7rem;
+            font-size: 0.8rem;
+        }
+
+        .config-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.25rem;
+        }
+
+        .config-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .config-list-item {
+            padding: 0.75rem;
+            margin-bottom: 0.4rem;
+            background: #f8f8f8;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .config-list-item:hover {
+            background: #f0f0f0;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .alert {
+            padding: 0.75rem;
+            border-radius: 4px;
+            margin-bottom: 0.75rem;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid var(--danger-color);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        .code-editor {
+            font-family: 'Monaco', 'Courier New', monospace;
+            min-height: 400px;
+            resize: vertical;
+        }
+
+        /* Visual Editor Styles */
+        .editor-toggle {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .editor-mode {
+            display: none;
+        }
+
+        .editor-mode.active {
+            display: block;
+        }
+
+        .button-config-item {
+            background: #f8f8f8;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .button-config-item h4 {
+            margin-bottom: 0.5rem;
+            color: var(--primary-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.05em;
+        }
+
+        .action-item {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 0.5rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .action-type-badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        select {
+            appearance: none;
+            background-color: white;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            padding-right: 2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        select:hover {
+            border-color: #999;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 102, 102, 0.1);
+        }
+
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -256,16 +585,24 @@
         <p>Device & Teams Control Center</p>
     </div>
 
+    <div class="tabs">
+        <ul class="tab-list">
+            <li><button class="tab-button active" data-tab="dashboard">Dashboard</button></li>
+            <li><button class="tab-button" data-tab="config">Configuration</button></li>
+        </ul>
+    </div>
+
     <div class="container">
-        <main>
-        <main>
-        <div class="status-cards">
-            <div class="card">
-                <h2>
-                    <span class="status-indicator" id="device-indicator"></span>
-                    Device Status
-                </h2>
-                <div class="status-info">
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <main>
+                <div class="status-cards">
+                    <div class="card">
+                        <h2>
+                            <span class="status-indicator" id="device-indicator"></span>
+                            Device Status
+                        </h2>
+                        <div class="status-info">
                     <div class="status-row">
                         <span class="status-label">Connection</span>
                         <span class="status-value" id="device-connection">
@@ -330,7 +667,97 @@
                 <div class="log-entries" id="teams-logs"></div>
             </div>
         </div>
-        </main>
+            </main>
+        </div>
+
+        <!-- Configuration Tab -->
+        <div id="config" class="tab-content">
+            <main>
+                <div id="config-alert"></div>
+                
+                <div class="config-section">
+                    <div class="editor-toggle">
+                        <button class="btn btn-primary" id="visual-mode-btn" onclick="switchEditorMode('visual')">Visual Editor</button>
+                        <button class="btn btn-primary" id="yaml-mode-btn" onclick="switchEditorMode('yaml')">YAML Editor</button>
+                    </div>
+
+                    <!-- YAML Editor Mode -->
+                    <div id="yaml-editor-mode" class="editor-mode active">
+                        <h3>YAML Configuration Editor</h3>
+                        <p style="margin-bottom: 1rem; color: #666;">
+                            Edit the configuration directly in YAML format. Changes will be validated before saving.
+                        </p>
+                        <div class="form-group">
+                            <label for="config-yaml">Configuration (YAML)</label>
+                            <textarea id="config-yaml" class="code-editor"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Visual Editor Mode -->
+                    <div id="visual-editor-mode" class="editor-mode">
+                        <h3>Visual Configuration Editor</h3>
+                        <p style="margin-bottom: 1rem; color: #666;">
+                            Configure your buttons and settings using forms and dropdowns.
+                        </p>
+
+                        <!-- Button Actions -->
+                        <div style="margin-bottom: 1rem;">
+                            <h4 style="margin-bottom: 0.5rem;">Button Actions</h4>
+                            <div id="button-actions-list"></div>
+                            <button class="btn btn-sm btn-primary" onclick="addButtonAction()">+ Add Button Action</button>
+                        </div>
+
+                        <!-- Longpress Actions -->
+                        <div style="margin-bottom: 1rem;">
+                            <h4 style="margin-bottom: 0.5rem;">Long Press Actions</h4>
+                            <div id="longpress-actions-list"></div>
+                            <button class="btn btn-sm btn-primary" onclick="addLongpressAction()">+ Add Long Press Action</button>
+                        </div>
+
+                        <!-- LED Status -->
+                        <div style="margin-bottom: 1rem;">
+                            <h4 style="margin-bottom: 0.5rem;">LED Status Configurations</h4>
+                            <div id="led-status-list"></div>
+                            <button class="btn btn-sm btn-primary" onclick="addLedStatus()">+ Add LED Config</button>
+                        </div>
+
+                        <!-- Device Identifications -->
+                        <div style="margin-bottom: 1rem;">
+                            <h4 style="margin-bottom: 0.5rem;">Device Identifications</h4>
+                            <div id="device-list"></div>
+                            <button class="btn btn-sm btn-primary" onclick="addDevice()">+ Add Device</button>
+                        </div>
+                    </div>
+
+                    <div class="config-actions">
+                        <button class="btn btn-success" onclick="saveConfig()">Save Configuration</button>
+                        <button class="btn btn-primary" onclick="loadConfig()">Reload from File</button>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <h3>Quick Stats</h3>
+                    <div class="grid-2">
+                        <div class="status-row">
+                            <span class="status-label">Total Buttons</span>
+                            <span class="status-value" id="total-buttons">-</span>
+                        </div>
+                        <div class="status-row">
+                            <span class="status-label">Device Count</span>
+                            <span class="status-value" id="device-count">-</span>
+                        </div>
+                        <div class="status-row">
+                            <span class="status-label">LED Configs</span>
+                            <span class="status-value" id="led-configs">-</span>
+                        </div>
+                        <div class="status-row">
+                            <span class="status-label">Longpress Actions</span>
+                            <span class="status-value" id="longpress-count">-</span>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
     </div>
 
     <footer>
@@ -338,6 +765,880 @@
     </footer>
 
     <script>
+        // Tab functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabName = button.getAttribute('data-tab');
+                    
+                    // Remove active class from all tabs and contents
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Add active class to clicked tab and corresponding content
+                    button.classList.add('active');
+                    document.getElementById(tabName).classList.add('active');
+                    
+                    // Load config when switching to config tab
+                    if (tabName === 'config') {
+                        loadConfig();
+                    }
+                });
+            });
+        });
+
+        let currentConfig = null;
+        let editorMode = 'yaml'; // 'yaml' or 'visual'
+
+        // Editor mode switching
+        function switchEditorMode(mode) {
+            editorMode = mode;
+            document.getElementById('yaml-editor-mode').classList.remove('active');
+            document.getElementById('visual-editor-mode').classList.remove('active');
+            
+            if (mode === 'yaml') {
+                document.getElementById('yaml-editor-mode').classList.add('active');
+                document.getElementById('yaml-mode-btn').classList.add('btn-primary');
+                document.getElementById('visual-mode-btn').classList.remove('btn-primary');
+                document.getElementById('visual-mode-btn').classList.add('btn-secondary');
+                // Sync from visual to YAML
+                if (currentConfig) {
+                    syncVisualToYaml();
+                }
+            } else {
+                document.getElementById('visual-editor-mode').classList.add('active');
+                document.getElementById('visual-mode-btn').classList.add('btn-primary');
+                document.getElementById('yaml-mode-btn').classList.remove('btn-primary');
+                document.getElementById('yaml-mode-btn').classList.add('btn-secondary');
+                // Sync from YAML to visual
+                syncYamlToVisual();
+            }
+        }
+
+        function syncYamlToVisual() {
+            try {
+                const yamlText = document.getElementById('config-yaml').value;
+                currentConfig = jsyaml.load(yamlText);
+                renderVisualEditor();
+            } catch (error) {
+                console.error('Failed to parse YAML:', error);
+            }
+        }
+
+        function syncVisualToYaml() {
+            if (currentConfig) {
+                const yaml = jsyaml.dump(currentConfig, { indent: 2, lineWidth: -1 });
+                document.getElementById('config-yaml').value = yaml;
+            }
+        }
+
+        function renderVisualEditor() {
+            if (!currentConfig) return;
+            
+            // Render devices
+            renderDeviceList();
+            // Render button actions
+            renderButtonActionsList();
+            // Render longpress actions
+            renderLongpressActionsList();
+            // Render LED status
+            renderLedStatusList();
+        }
+
+        // Device management
+        function renderDeviceList() {
+            const container = document.getElementById('device-list');
+            if (!currentConfig.device_identifications) {
+                currentConfig.device_identifications = [];
+            }
+            
+            container.innerHTML = currentConfig.device_identifications.map((device, index) => `
+                <div class="button-config-item">
+                    <h4>
+                        Device ${index + 1}
+                        <button class="btn btn-sm btn-danger" onclick="removeDevice(${index})">Remove</button>
+                    </h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Vendor ID</label>
+                            <input type="number" value="${device.vendor_id}" 
+                                onchange="updateDevice(${index}, 'vendor_id', parseInt(this.value))">
+                        </div>
+                        <div class="form-group">
+                            <label>Product ID</label>
+                            <input type="number" value="${device.product_id}"
+                                onchange="updateDevice(${index}, 'product_id', parseInt(this.value))">
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addDevice() {
+            if (!currentConfig.device_identifications) {
+                currentConfig.device_identifications = [];
+            }
+            currentConfig.device_identifications.push({ vendor_id: 0, product_id: 0 });
+            renderDeviceList();
+        }
+
+        function removeDevice(index) {
+            currentConfig.device_identifications.splice(index, 1);
+            renderDeviceList();
+        }
+
+        function updateDevice(index, field, value) {
+            currentConfig.device_identifications[index][field] = value;
+        }
+
+        // Button actions management
+        function renderButtonActionsList() {
+            const container = document.getElementById('button-actions-list');
+            if (!currentConfig.actions) {
+                currentConfig.actions = [];
+            }
+            
+            container.innerHTML = currentConfig.actions.map((buttonAction, index) => `
+                <div class="button-config-item">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1;">
+                            <strong>Button ${buttonAction.button_id}</strong>
+                            <label style="margin: 0; white-space: nowrap;">Button ID:</label>
+                            <input type="number" min="1" max="255" value="${buttonAction.button_id}" style="width: 80px; padding: 0.3rem;"
+                                onchange="updateButtonId(${index}, parseInt(this.value))">
+                        </div>
+                        <button class="btn btn-sm btn-primary" onclick="addActionToButton(${index})">+ Add Action</button>
+                        <button class="btn btn-sm btn-danger" onclick="removeButtonAction(${index})">Remove</button>
+                    </div>
+                    <div>
+                        ${renderActions(buttonAction.actions, index)}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderActions(actions, buttonIndex) {
+            if (!actions || actions.length === 0) return '<p style="color: #999;">No actions configured</p>';
+            
+            return actions.map((action, actionIndex) => {
+                const actionType = getActionType(action);
+                return `
+                    <div class="action-item">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span class="action-type-badge">${actionType}</span>
+                                <select onchange="changeActionType(${buttonIndex}, ${actionIndex}, this.value)" style="padding: 0.3rem 0.5rem; font-size: 0.85rem; border: 1px solid var(--border-color); border-radius: 4px; background-color: white; cursor: pointer;">
+                                    <option value="">Change type...</option>
+                                    <option value="teams-action">Teams Action</option>
+                                    <option value="teams-reaction">Teams Reaction</option>
+                                    <option value="activate-teams">Activate Teams</option>
+                                    <option value="keyboard-tap">Keyboard Tap</option>
+                                    <option value="keyboard-type">Keyboard Type</option>
+                                    <option value="mouse-move">Mouse Move</option>
+                                    <option value="mouse-click">Mouse Click</option>
+                                    <option value="command">Command</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-sm btn-danger" onclick="removeAction(${buttonIndex}, ${actionIndex})">Remove</button>
+                        </div>
+                        ${renderActionFields(action, buttonIndex, actionIndex)}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getActionType(action) {
+            if (action.meeting_action) return 'Teams Action';
+            if (action.teams_reaction) return 'Teams Reaction';
+            if (action.keyboard) return 'Keyboard';
+            if (action.mouse) return 'Mouse';
+            if (action.command) return 'Command';
+            if (action.webhook) return 'Webhook';
+            if (action.activate_teams) return 'Activate Teams';
+            return 'Unknown';
+        }
+
+        function renderActionFields(action, buttonIndex, actionIndex) {
+            let html = '';
+            
+            // Meeting action
+            if (action.meeting_action) {
+                html += `
+                    <div class="form-group-inline">
+                        <label>Meeting Action:</label>
+                        <select onchange="updateActionField(${buttonIndex}, ${actionIndex}, 'meeting_action', this.value)">
+                            ${getMeetingActionOptions(action.meeting_action)}
+                        </select>
+                    </div>
+                `;
+            }
+            
+            // Teams reaction
+            if (action.teams_reaction) {
+                html += `
+                    <div class="form-group-inline">
+                        <label>Reaction:</label>
+                        <select onchange="updateReaction(${buttonIndex}, ${actionIndex}, this.value)">
+                            ${getReactionOptions(action.teams_reaction.reaction)}
+                        </select>
+                    </div>
+                `;
+            }
+            
+            // Command
+            if (action.command) {
+                html += `
+                    <div class="form-group-inline">
+                        <label>Command:</label>
+                        <input type="text" value="${action.command}" 
+                            onchange="updateActionField(${buttonIndex}, ${actionIndex}, 'command', this.value)">
+                    </div>
+                `;
+            }
+            
+            // Keyboard
+            if (action.keyboard) {
+                if (action.keyboard.tap) {
+                    html += `
+                        <div class="form-group-inline">
+                            <label>Key:</label>
+                            <input type="text" value="${action.keyboard.tap.key || ''}" style="max-width: 100px;"
+                                onchange="updateKeyboardTap(${buttonIndex}, ${actionIndex}, 'key', this.value)">
+                            <label>Modifiers:</label>
+                            <input type="text" value="${(action.keyboard.tap.modifiers || []).join(', ')}"
+                                onchange="updateKeyboardTapModifiers(${buttonIndex}, ${actionIndex}, this.value)">
+                        </div>
+                    `;
+                }
+                if (action.keyboard.type) {
+                    html += `
+                        <div class="form-group-inline">
+                            <label>Type String:</label>
+                            <input type="text" value="${action.keyboard.type.string || ''}"
+                                onchange="updateKeyboardType(${buttonIndex}, ${actionIndex}, this.value)">
+                        </div>
+                    `;
+                }
+            }
+            
+            // Mouse
+            if (action.mouse) {
+                if (action.mouse.move) {
+                    html += `
+                        <div class="form-group-inline">
+                            <label>Move X:</label>
+                            <input type="number" value="${action.mouse.move.x}" style="max-width: 100px;"
+                                onchange="updateMouseMove(${buttonIndex}, ${actionIndex}, 'x', parseInt(this.value))">
+                            <label>Y:</label>
+                            <input type="number" value="${action.mouse.move.y}" style="max-width: 100px;"
+                                onchange="updateMouseMove(${buttonIndex}, ${actionIndex}, 'y', parseInt(this.value))">
+                        </div>
+                    `;
+                }
+                if (action.mouse.click) {
+                    html += `
+                        <div class="form-group-inline">
+                            <label>Mouse Button:</label>
+                            <select onchange="updateMouseClick(${buttonIndex}, ${actionIndex}, this.value)">
+                                <option value="left" ${action.mouse.click.button === 'left' ? 'selected' : ''}>Left</option>
+                                <option value="right" ${action.mouse.click.button === 'right' ? 'selected' : ''}>Right</option>
+                                <option value="middle" ${action.mouse.click.button === 'middle' ? 'selected' : ''}>Middle</option>
+                            </select>
+                        </div>
+                    `;
+                }
+            }
+            
+            return html;
+        }
+
+        function getMeetingActionOptions(selected) {
+            const options = [
+                'toggle-mute', 'mute', 'unmute',
+                'toggle-video', 'show-video', 'hide-video',
+                'toggle-hand', 'raise-hand', 'lower-hand',
+                'toggle-background-blur', 'blur-background', 'unblur-background',
+                'leave-call', 'query-state', 'toggle-ui', 'stop-sharing', 'none'
+            ];
+            return options.map(opt => `<option value="${opt}" ${opt === selected ? 'selected' : ''}>${opt}</option>`).join('');
+        }
+
+        function getReactionOptions(selected) {
+            const options = ['like', 'love', 'applause', 'laugh', 'wow', 'chat', 'sharing-tray'];
+            return options.map(opt => `<option value="${opt}" ${opt === selected ? 'selected' : ''}>${opt}</option>`).join('');
+        }
+
+        function addButtonAction() {
+            if (!currentConfig.actions) currentConfig.actions = [];
+            const newId = currentConfig.actions.length > 0 
+                ? Math.max(...currentConfig.actions.map(a => a.button_id)) + 1 
+                : 1;
+            currentConfig.actions.push({
+                button_id: newId,
+                actions: []
+            });
+            renderButtonActionsList();
+        }
+
+        function removeButtonAction(index) {
+            currentConfig.actions.splice(index, 1);
+            renderButtonActionsList();
+        }
+
+        function updateButtonId(index, newId) {
+            currentConfig.actions[index].button_id = newId;
+        }
+
+        function addActionToButton(buttonIndex) {
+            if (!currentConfig.actions[buttonIndex].actions) {
+                currentConfig.actions[buttonIndex].actions = [];
+            }
+            // Add a default Teams action
+            currentConfig.actions[buttonIndex].actions.push({
+                meeting_action: 'toggle-mute'
+            });
+            renderButtonActionsList();
+        }
+
+        function removeAction(buttonIndex, actionIndex) {
+            currentConfig.actions[buttonIndex].actions.splice(actionIndex, 1);
+            renderButtonActionsList();
+        }
+
+        function changeActionType(buttonIndex, actionIndex, type) {
+            const newAction = {};
+            
+            switch(type) {
+                case 'teams-action':
+                    newAction.meeting_action = 'toggle-mute';
+                    break;
+                case 'teams-reaction':
+                    newAction.teams_reaction = { reaction: 'like' };
+                    break;
+                case 'activate-teams':
+                    newAction.activate_teams = true;
+                    break;
+                case 'keyboard-tap':
+                    newAction.keyboard = { tap: { key: 'space', modifiers: [] } };
+                    break;
+                case 'keyboard-type':
+                    newAction.keyboard = { type: { string: '' } };
+                    break;
+                case 'mouse-move':
+                    newAction.mouse = { move: { x: 0, y: 0 } };
+                    break;
+                case 'mouse-click':
+                    newAction.mouse = { click: { button: 'left' } };
+                    break;
+                case 'command':
+                    newAction.command = '';
+                    break;
+                default:
+                    return;
+            }
+            
+            currentConfig.actions[buttonIndex].actions[actionIndex] = newAction;
+            renderButtonActionsList();
+        }
+
+        function updateActionField(buttonIndex, actionIndex, field, value) {
+            currentConfig.actions[buttonIndex].actions[actionIndex][field] = value;
+        }
+
+        function updateReaction(buttonIndex, actionIndex, reaction) {
+            currentConfig.actions[buttonIndex].actions[actionIndex].teams_reaction = { reaction };
+        }
+
+        function updateKeyboardTap(buttonIndex, actionIndex, field, value) {
+            if (!currentConfig.actions[buttonIndex].actions[actionIndex].keyboard.tap) {
+                currentConfig.actions[buttonIndex].actions[actionIndex].keyboard.tap = {};
+            }
+            currentConfig.actions[buttonIndex].actions[actionIndex].keyboard.tap[field] = value;
+        }
+
+        function updateKeyboardTapModifiers(buttonIndex, actionIndex, value) {
+            const modifiers = value.split(',').map(m => m.trim()).filter(m => m);
+            if (!currentConfig.actions[buttonIndex].actions[actionIndex].keyboard.tap) {
+                currentConfig.actions[buttonIndex].actions[actionIndex].keyboard.tap = {};
+            }
+            currentConfig.actions[buttonIndex].actions[actionIndex].keyboard.tap.modifiers = modifiers;
+        }
+
+        function updateKeyboardType(buttonIndex, actionIndex, value) {
+            currentConfig.actions[buttonIndex].actions[actionIndex].keyboard.type = { string: value };
+        }
+
+        function updateMouseMove(buttonIndex, actionIndex, field, value) {
+            if (!currentConfig.actions[buttonIndex].actions[actionIndex].mouse.move) {
+                currentConfig.actions[buttonIndex].actions[actionIndex].mouse.move = { x: 0, y: 0 };
+            }
+            currentConfig.actions[buttonIndex].actions[actionIndex].mouse.move[field] = value;
+        }
+
+        function updateMouseClick(buttonIndex, actionIndex, button) {
+            currentConfig.actions[buttonIndex].actions[actionIndex].mouse.click = { button };
+        }
+
+        // Longpress actions management
+        function renderLongpressActionsList() {
+            const container = document.getElementById('longpress-actions-list');
+            if (!currentConfig.longpress_action) {
+                currentConfig.longpress_action = [];
+            }
+            
+            container.innerHTML = currentConfig.longpress_action.map((buttonAction, index) => `
+                <div class="button-config-item">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1;">
+                            <strong>Long Press Button ${buttonAction.button_id}</strong>
+                            <label style="margin: 0; white-space: nowrap;">Button ID:</label>
+                            <input type="number" min="1" max="255" value="${buttonAction.button_id}" style="width: 80px; padding: 0.3rem;"
+                                onchange="updateLongpressButtonId(${index}, parseInt(this.value))">
+                        </div>
+                        <button class="btn btn-sm btn-primary" onclick="addActionToLongpress(${index})">+ Add Action</button>
+                        <button class="btn btn-sm btn-danger" onclick="removeLongpressAction(${index})">Remove</button>
+                    </div>
+                    <div>
+                        ${renderLongpressActions(buttonAction.actions, index)}
+                        
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderLongpressActions(actions, buttonIndex) {
+            if (!actions || actions.length === 0) return '<p style="color: #999;">No actions configured</p>';
+            
+            return actions.map((action, actionIndex) => {
+                const actionType = getActionType(action);
+                return `
+                    <div class="action-item">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span class="action-type-badge">${actionType}</span>
+                                <select onchange="changeLongpressActionType(${buttonIndex}, ${actionIndex}, this.value)" style="padding: 0.3rem 0.5rem; font-size: 0.85rem; border: 1px solid var(--border-color); border-radius: 4px; background-color: white; cursor: pointer;">
+                                    <option value="">Change type...</option>
+                                    <option value="teams-action">Teams Action</option>
+                                    <option value="teams-reaction">Teams Reaction</option>
+                                    <option value="activate-teams">Activate Teams</option>
+                                    <option value="keyboard-tap">Keyboard Tap</option>
+                                    <option value="keyboard-type">Keyboard Type</option>
+                                    <option value="mouse-move">Mouse Move</option>
+                                    <option value="mouse-set">Mouse Set</option>
+                                    <option value="mouse-click">Mouse Click</option>
+                                    <option value="command">Command</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-sm btn-danger" onclick="removeLongpressActionItem(${buttonIndex}, ${actionIndex})">Remove</button>
+                        </div>
+                        ${renderLongpressActionFields(action, buttonIndex, actionIndex)}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderLongpressActionFields(action, buttonIndex, actionIndex) {
+            let html = '';
+            
+            // Meeting action
+            if (action.meeting_action) {
+                html += `
+                    <div class="form-group-inline">
+                        <label>Meeting Action:</label>
+                        <select onchange="updateLongpressActionField(${buttonIndex}, ${actionIndex}, 'meeting_action', this.value)">
+                            ${getMeetingActionOptions(action.meeting_action)}
+                        </select>
+                    </div>
+                `;
+            }
+            
+            // Teams reaction
+            if (action.teams_reaction) {
+                html += `
+                    <div class="form-group-inline">
+                        <label>Reaction:</label>
+                        <select onchange="updateLongpressReaction(${buttonIndex}, ${actionIndex}, this.value)">
+                            ${getReactionOptions(action.teams_reaction.reaction)}
+                        </select>
+                    </div>
+                `;
+            }
+            
+            // Command
+            if (action.command) {
+                html += `
+                    <div class="form-group-inline">
+                        <label>Command:</label>
+                        <input type="text" value="${action.command}" 
+                            onchange="updateLongpressActionField(${buttonIndex}, ${actionIndex}, 'command', this.value)">
+                    </div>
+                `;
+            }
+            
+            // Keyboard
+            if (action.keyboard) {
+                if (action.keyboard.tap) {
+                    html += `
+                        <div class="form-group-inline">
+                            <label>Key:</label>
+                            <input type="text" value="${action.keyboard.tap.key || ''}" style="max-width: 100px;"
+                                onchange="updateLongpressKeyboardTap(${buttonIndex}, ${actionIndex}, 'key', this.value)">
+                            <label>Modifiers:</label>
+                            <input type="text" value="${(action.keyboard.tap.modifiers || []).join(', ')}"
+                                onchange="updateLongpressKeyboardTapModifiers(${buttonIndex}, ${actionIndex}, this.value)">
+                        </div>
+                    `;
+                }
+                if (action.keyboard.type) {
+                    html += `
+                        <div class="form-group-inline">
+                            <label>Type String:</label>
+                            <input type="text" value="${action.keyboard.type.string || ''}"
+                                onchange="updateLongpressKeyboardType(${buttonIndex}, ${actionIndex}, this.value)">
+                        </div>
+                    `;
+                }
+            }
+            
+            // Mouse
+            if (action.mouse) {
+                if (action.mouse.move) {
+                    html += `
+                        <div class="form-group-inline">
+                            <label>Move X:</label>
+                            <input type="number" value="${action.mouse.move.x}" style="max-width: 100px;"
+                                onchange="updateLongpressMouseMove(${buttonIndex}, ${actionIndex}, 'x', parseInt(this.value))">
+                            <label>Y:</label>
+                            <input type="number" value="${action.mouse.move.y}" style="max-width: 100px;"
+                                onchange="updateLongpressMouseMove(${buttonIndex}, ${actionIndex}, 'y', parseInt(this.value))">
+                        </div>
+                    `;
+                }
+                if (action.mouse.set) {
+                    html += `
+                        <div class="form-group-inline">
+                            <label>Set X:</label>
+                            <input type="number" value="${action.mouse.set.x}" style="max-width: 100px;"
+                                onchange="updateLongpressMouseSet(${buttonIndex}, ${actionIndex}, 'x', parseInt(this.value))">
+                            <label>Y:</label>
+                            <input type="number" value="${action.mouse.set.y}" style="max-width: 100px;"
+                                onchange="updateLongpressMouseSet(${buttonIndex}, ${actionIndex}, 'y', parseInt(this.value))">
+                        </div>
+                    `;
+                }
+                if (action.mouse.click) {
+                    html += `
+                        <div class="form-group-inline">
+                            <label>Mouse Button:</label>
+                            <select onchange="updateLongpressMouseClick(${buttonIndex}, ${actionIndex}, this.value)">
+                                <option value="left" ${action.mouse.click.button === 'left' ? 'selected' : ''}>Left</option>
+                                <option value="right" ${action.mouse.click.button === 'right' ? 'selected' : ''}>Right</option>
+                                <option value="middle" ${action.mouse.click.button === 'middle' ? 'selected' : ''}>Middle</option>
+                            </select>
+                        </div>
+                    `;
+                }
+            }
+            
+            return html;
+        }
+
+        function addLongpressAction() {
+            if (!currentConfig.longpress_action) currentConfig.longpress_action = [];
+            const newId = currentConfig.longpress_action.length > 0 
+                ? Math.max(...currentConfig.longpress_action.map(a => a.button_id)) + 1 
+                : 1;
+            currentConfig.longpress_action.push({
+                button_id: newId,
+                actions: []
+            });
+            renderLongpressActionsList();
+        }
+
+        function removeLongpressAction(index) {
+            currentConfig.longpress_action.splice(index, 1);
+            renderLongpressActionsList();
+        }
+
+        function updateLongpressButtonId(index, newId) {
+            currentConfig.longpress_action[index].button_id = newId;
+        }
+
+        function addActionToLongpress(buttonIndex) {
+            if (!currentConfig.longpress_action[buttonIndex].actions) {
+                currentConfig.longpress_action[buttonIndex].actions = [];
+            }
+            currentConfig.longpress_action[buttonIndex].actions.push({
+                meeting_action: 'toggle-mute'
+            });
+            renderLongpressActionsList();
+        }
+
+        function removeLongpressActionItem(buttonIndex, actionIndex) {
+            currentConfig.longpress_action[buttonIndex].actions.splice(actionIndex, 1);
+            renderLongpressActionsList();
+        }
+
+        function changeLongpressActionType(buttonIndex, actionIndex, type) {
+            const newAction = {};
+            
+            switch(type) {
+                case 'teams-action':
+                    newAction.meeting_action = 'toggle-mute';
+                    break;
+                case 'teams-reaction':
+                    newAction.teams_reaction = { reaction: 'like' };
+                    break;
+                case 'activate-teams':
+                    newAction.activate_teams = true;
+                    break;
+                case 'keyboard-tap':
+                    newAction.keyboard = { tap: { key: 'space', modifiers: [] } };
+                    break;
+                case 'keyboard-type':
+                    newAction.keyboard = { type: { string: '' } };
+                    break;
+                case 'mouse-move':
+                    newAction.mouse = { move: { x: 0, y: 0 } };
+                    break;
+                case 'mouse-set':
+                    newAction.mouse = { set: { x: 0, y: 0 } };
+                    break;
+                case 'mouse-click':
+                    newAction.mouse = { click: { button: 'left' } };
+                    break;
+                case 'command':
+                    newAction.command = '';
+                    break;
+                default:
+                    return;
+            }
+            
+            currentConfig.longpress_action[buttonIndex].actions[actionIndex] = newAction;
+            renderLongpressActionsList();
+        }
+
+        function updateLongpressActionField(buttonIndex, actionIndex, field, value) {
+            currentConfig.longpress_action[buttonIndex].actions[actionIndex][field] = value;
+        }
+
+        function updateLongpressReaction(buttonIndex, actionIndex, reaction) {
+            currentConfig.longpress_action[buttonIndex].actions[actionIndex].teams_reaction = { reaction };
+        }
+
+        function updateLongpressKeyboardTap(buttonIndex, actionIndex, field, value) {
+            if (!currentConfig.longpress_action[buttonIndex].actions[actionIndex].keyboard.tap) {
+                currentConfig.longpress_action[buttonIndex].actions[actionIndex].keyboard.tap = {};
+            }
+            currentConfig.longpress_action[buttonIndex].actions[actionIndex].keyboard.tap[field] = value;
+        }
+
+        function updateLongpressKeyboardTapModifiers(buttonIndex, actionIndex, value) {
+            const modifiers = value.split(',').map(m => m.trim()).filter(m => m);
+            if (!currentConfig.longpress_action[buttonIndex].actions[actionIndex].keyboard.tap) {
+                currentConfig.longpress_action[buttonIndex].actions[actionIndex].keyboard.tap = {};
+            }
+            currentConfig.longpress_action[buttonIndex].actions[actionIndex].keyboard.tap.modifiers = modifiers;
+        }
+
+        function updateLongpressKeyboardType(buttonIndex, actionIndex, value) {
+            currentConfig.longpress_action[buttonIndex].actions[actionIndex].keyboard.type = { string: value };
+        }
+
+        function updateLongpressMouseMove(buttonIndex, actionIndex, field, value) {
+            if (!currentConfig.longpress_action[buttonIndex].actions[actionIndex].mouse.move) {
+                currentConfig.longpress_action[buttonIndex].actions[actionIndex].mouse.move = { x: 0, y: 0 };
+            }
+            currentConfig.longpress_action[buttonIndex].actions[actionIndex].mouse.move[field] = value;
+        }
+
+        function updateLongpressMouseSet(buttonIndex, actionIndex, field, value) {
+            if (!currentConfig.longpress_action[buttonIndex].actions[actionIndex].mouse.set) {
+                currentConfig.longpress_action[buttonIndex].actions[actionIndex].mouse.set = { x: 0, y: 0 };
+            }
+            currentConfig.longpress_action[buttonIndex].actions[actionIndex].mouse.set[field] = value;
+        }
+
+        function updateLongpressMouseClick(buttonIndex, actionIndex, button) {
+            currentConfig.longpress_action[buttonIndex].actions[actionIndex].mouse.click = { button };
+        }
+
+        // LED Status management
+        function renderLedStatusList() {
+            const container = document.getElementById('led-status-list');
+            if (!currentConfig.led_status) {
+                currentConfig.led_status = [];
+            }
+            
+            container.innerHTML = currentConfig.led_status.map((led, index) => `
+                <div class="button-config-item">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1;">
+                            <strong>LED Button ${led.button_id}</strong>
+                            <label style="margin: 0; white-space: nowrap;">Button ID:</label>
+                            <input type="number" min="1" max="255" value="${led.button_id}" style="width: 80px; padding: 0.3rem;"
+                                onchange="updateLedButtonId(${index}, parseInt(this.value))">
+                        </div>
+                        <button class="btn btn-sm btn-danger" onclick="removeLedStatus(${index})">Remove</button>
+                    </div>
+                    ${led.teams_state ? `
+                        <div class="form-group-inline">
+                            <label>Teams State:</label>
+                            <select onchange="updateLedTeamsState(${index}, this.value)">
+                                ${getTeamsStateOptions(led.teams_state.teams_state)}
+                            </select>
+                            <label>Color On:</label>
+                            <select onchange="updateLedColor(${index}, 'color_on', this.value)">
+                                ${getColorOptions(led.teams_state.color_on)}
+                            </select>
+                            <label>Color Off:</label>
+                            <select onchange="updateLedColor(${index}, 'color_off', this.value)">
+                                ${getColorOptions(led.teams_state.color_off)}
+                            </select>
+                        </div>
+                    ` : '<p style="color: #999;">No Teams state configured</p>'}
+                </div>
+            `).join('');
+        }
+
+        function getTeamsStateOptions(selected) {
+            const options = ['is-muted', 'is-hand-raised', 'is-video-on', 'is-in-meeting', 
+                           'is-recording-on', 'is-background-blurred', 'is-sharing', 'has-unread-messages'];
+            return options.map(opt => `<option value="${opt}" ${opt === selected ? 'selected' : ''}>${opt}</option>`).join('');
+        }
+
+        function getColorOptions(selected) {
+            const colors = ['black', 'red', 'green', 'blue', 'yellow', 'cyan', 'magenta', 'white', 'orange', 'purple'];
+            return colors.map(color => `<option value="${color}" ${color === selected ? 'selected' : ''}>${color}</option>`).join('');
+        }
+
+        function addLedStatus() {
+            if (!currentConfig.led_status) currentConfig.led_status = [];
+            const newId = currentConfig.led_status.length > 0 
+                ? Math.max(...currentConfig.led_status.map(l => l.button_id)) + 1 
+                : 1;
+            currentConfig.led_status.push({
+                button_id: newId,
+                webhook: false,
+                teams_state: {
+                    teams_state: 'is-muted',
+                    color_on: 'green',
+                    color_off: 'red'
+                }
+            });
+            renderLedStatusList();
+        }
+
+        function removeLedStatus(index) {
+            currentConfig.led_status.splice(index, 1);
+            renderLedStatusList();
+        }
+
+        function updateLedButtonId(index, newId) {
+            currentConfig.led_status[index].button_id = newId;
+        }
+
+        function updateLedTeamsState(index, state) {
+            if (!currentConfig.led_status[index].teams_state) {
+                currentConfig.led_status[index].teams_state = {};
+            }
+            currentConfig.led_status[index].teams_state.teams_state = state;
+        }
+
+        function updateLedColor(index, field, color) {
+            if (!currentConfig.led_status[index].teams_state) {
+                currentConfig.led_status[index].teams_state = {};
+            }
+            currentConfig.led_status[index].teams_state[field] = color;
+        }
+
+        // Config management functions
+        async function loadConfig() {
+            try {
+                const invoke = getInvokeFunction();
+                if (!invoke) {
+                    showConfigAlert('Tauri IPC not ready', 'error');
+                    return;
+                }
+
+                currentConfig = await invoke('get_config', {});
+                const yaml = jsyaml.dump(currentConfig, { indent: 2, lineWidth: -1 });
+                document.getElementById('config-yaml').value = yaml;
+                
+                if (editorMode === 'visual') {
+                    renderVisualEditor();
+                }
+                
+                updateConfigStats(currentConfig);
+                showConfigAlert('Configuration loaded successfully', 'success');
+            } catch (error) {
+                console.error('Failed to load config:', error);
+                showConfigAlert('Failed to load configuration: ' + error, 'error');
+            }
+        }
+
+        async function saveConfig() {
+            try {
+                const invoke = getInvokeFunction();
+                if (!invoke) {
+                    showConfigAlert('Tauri IPC not ready', 'error');
+                    return;
+                }
+
+                let config;
+                if (editorMode === 'yaml') {
+                    const yamlText = document.getElementById('config-yaml').value;
+                    config = jsyaml.load(yamlText);
+                } else {
+                    // In visual mode, currentConfig is already updated
+                    config = currentConfig;
+                }
+                
+                await invoke('save_config', { config });
+                currentConfig = config;
+                
+                // Update both editors
+                const yaml = jsyaml.dump(config, { indent: 2, lineWidth: -1 });
+                document.getElementById('config-yaml').value = yaml;
+                if (editorMode === 'visual') {
+                    renderVisualEditor();
+                }
+                
+                updateConfigStats(config);
+                showConfigAlert('Configuration saved successfully!', 'success');
+            } catch (error) {
+                console.error('Failed to save config:', error);
+                showConfigAlert('Failed to save configuration: ' + error, 'error');
+            }
+        }
+
+        function updateConfigStats(config) {
+            document.getElementById('total-buttons').textContent = config.actions?.length || 0;
+            document.getElementById('device-count').textContent = config.device_identifications?.length || 0;
+            document.getElementById('led-configs').textContent = config.led_status?.length || 0;
+            document.getElementById('longpress-count').textContent = config.longpress_action?.length || 0;
+        }
+
+        function showConfigAlert(message, type) {
+            const alertDiv = document.getElementById('config-alert');
+            alertDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => {
+                alertDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        function getInvokeFunction() {
+            let invoke = window.__TAURI_INVOKE__;
+            if (!invoke && window.__TAURI_INTERNALS__) {
+                invoke = (cmd, args) => window.__TAURI_INTERNALS__.invoke(cmd, args);
+            }
+            return invoke;
+        }
+
+        // Dashboard functions (existing code)
         // Wait for Tauri IPC to be ready
         async function initApp() {
             // Try multiple methods to get invoke function
