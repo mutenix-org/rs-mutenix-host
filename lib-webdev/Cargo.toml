@@ -1,0 +1,18 @@
+[package]
+name = "mutenix-webdev"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1.42", features = ["full"] }
+axum = { version = "0.7", features = ["ws"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+log = "0.4"
+mutenix-hid = { path = "../lib-dev" }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors", "trace"] }
+futures-util = "0.3"
+
+[dev-dependencies]
+env_logger = "0.11"
