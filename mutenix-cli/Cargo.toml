@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 mutenix-hid = { path = "../lib-dev" }
 teams-api = { path = "../lib-teams" }
-lib-actions = { path = "../lib-actions" }
+lib-base = { path = "../lib-base" }
 tokio = { version = "1.42", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.9"

@@ -20,6 +20,7 @@ pub enum LogLevel {
     Info,
     Warn,
     Error,
+    #[allow(dead_code)]
     Debug,
 }
 

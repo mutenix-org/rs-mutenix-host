@@ -25,6 +25,7 @@ pub enum LogLevel {
 }
 
 impl LogLevel {
+    #[allow(dead_code)]
     pub fn as_str(&self) -> &str {
         match self {
             LogLevel::Info => "INFO",
@@ -93,6 +94,7 @@ pub struct AppState {
     teams_status: Arc<RwLock<TeamsStatus>>,
     device_logs: Arc<RwLock<VecDeque<LogEntry>>>,
     teams_logs: Arc<RwLock<VecDeque<LogEntry>>>,
+    #[allow(dead_code)]
     version: String,
 }
 
@@ -155,6 +157,7 @@ impl AppState {
         self.teams_logs.read().await.iter().cloned().collect()
     }
 
+    #[allow(dead_code)]
     pub fn version(&self) -> &str {
         &self.version
     }

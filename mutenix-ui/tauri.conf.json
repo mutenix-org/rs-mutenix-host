@@ -13,7 +13,7 @@
       {
         "title": "Mutenix",
         "width": 1000,
-        "height": 700,
+        "height": 1000,
         "resizable": true,
         "fullscreen": false,
         "visible": false,

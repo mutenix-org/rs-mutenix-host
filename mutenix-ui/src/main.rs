@@ -3,12 +3,11 @@
 
 mod actions;
 mod app;
-mod config;
 
 use actions::execute_button_actions;
 use anyhow::{Context, Result};
 use app::{AppState, DeviceStatus, LogLevel, TeamsStatus};
-use config::Config;
+use lib_base::{Config, TeamsStateType};
 use mutenix_hid::{
     ConnectionState as DeviceConnectionState, DeviceMessage, HidDevice, LedColor, SetLed,
 };
@@ -367,16 +366,16 @@ impl MutenixUi {
                 for led_status in &config.led_status {
                     if let Some(teams_config) = &led_status.teams_state {
                         let is_active = match teams_config.teams_state {
-                            config::TeamsStateType::IsMuted => meeting_state.is_muted,
-                            config::TeamsStateType::IsVideoOn => meeting_state.is_video_on,
-                            config::TeamsStateType::IsHandRaised => meeting_state.is_hand_raised,
-                            config::TeamsStateType::IsInMeeting => meeting_state.is_in_meeting,
-                            config::TeamsStateType::IsRecordingOn => meeting_state.is_recording_on,
-                            config::TeamsStateType::IsBackgroundBlurred => {
+                            TeamsStateType::IsMuted => meeting_state.is_muted,
+                            TeamsStateType::IsVideoOn => meeting_state.is_video_on,
+                            TeamsStateType::IsHandRaised => meeting_state.is_hand_raised,
+                            TeamsStateType::IsInMeeting => meeting_state.is_in_meeting,
+                            TeamsStateType::IsRecordingOn => meeting_state.is_recording_on,
+                            TeamsStateType::IsBackgroundBlurred => {
                                 meeting_state.is_background_blurred
                             }
-                            config::TeamsStateType::IsSharing => meeting_state.is_sharing,
-                            config::TeamsStateType::HasUnreadMessages => {
+                            TeamsStateType::IsSharing => meeting_state.is_sharing,
+                            TeamsStateType::HasUnreadMessages => {
                                 meeting_state.has_unread_messages
                             }
                         };

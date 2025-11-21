@@ -2,7 +2,7 @@
 // Copyright (c) 2025 Matthias Bilger <matthias@bilger.info>
 
 use anyhow::{Context, Result};
-use lib_actions::ButtonAction;
+use crate::ButtonAction;
 use mutenix_hid::LedColor;
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -233,6 +233,7 @@ impl Config {
     }
 
     /// Find LED status by button ID
+    #[allow(dead_code)]
     pub fn find_led_status(&self, button_id: u8) -> Option<&LedStatus> {
         self.led_status.iter().find(|l| l.button_id == button_id)
     }

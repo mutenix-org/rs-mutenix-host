@@ -3,14 +3,13 @@
 
 mod actions;
 mod app;
-mod config;
 mod ui;
 
 use actions::execute_button_actions;
 use anyhow::{Context, Result};
 use app::{AppState, LogLevel};
 use clap::Parser;
-use config::{Config, TeamsStateType};
+use lib_base::{Config, TeamsStateType};
 use mutenix_hid::{ConnectionState as DeviceConnectionState, DeviceMessage, HidDevice, LedColor, SetLed};
 use std::collections::HashMap;
 use std::path::PathBuf;

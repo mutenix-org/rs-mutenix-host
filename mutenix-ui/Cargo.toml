@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 mutenix-hid = { path = "../lib-dev" }
 teams-api = { path = "../lib-teams" }
-lib-actions = { path = "../lib-actions" }
+lib-base = { path = "../lib-base" }
 tauri = { version = "2.1", features = ["tray-icon", "image-png"] }
 tauri-plugin-shell = "2.0"
 tokio = { version = "1.42", features = ["full"] }

@@ -1,5 +1,6 @@
 [workspace]
-members = ["lib-actions",
+resolver = "2"
+members = ["lib-base",
     "lib-dev",
     "lib-teams",
     "lib-webdev",

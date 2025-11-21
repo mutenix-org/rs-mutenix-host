@@ -2181,14 +2181,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 
 [[package]]
-name = "lib-actions"
+name = "lib-base"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "enigo",
+ "mutenix-hid",
  "reqwest",
  "serde",
  "serde_json",
+ "serde_yaml",
  "teams-api",
  "tokio",
 ]
@@ -2444,7 +2446,7 @@ dependencies = [
  "clap",
  "crossterm",
  "enigo",
- "lib-actions",
+ "lib-base",
  "log",
  "mutenix-hid",
  "ratatui",
@@ -2478,7 +2480,7 @@ dependencies = [
  "anyhow",
  "chrono",
  "enigo",
- "lib-actions",
+ "lib-base",
  "mutenix-hid",
  "reqwest",
  "serde",
