@@ -428,24 +428,31 @@ async fn save_token(token_file: &PathBuf, token: &str) -> Result<()> {
 // Tauri commands
 #[tauri::command]
 async fn get_status(state: tauri::State<'_, Arc<AppState>>) -> Result<StatusPayload, String> {
-    Ok(StatusPayload {
+    let payload = StatusPayload {
         device: state.get_device_status().await,
         teams: state.get_teams_status().await,
-    })
+    };
+    println!("[Tauri] get_status called - Device connected: {}, Teams connected: {}", 
+        payload.device.connected, payload.teams.connected);
+    Ok(payload)
 }
 
 #[tauri::command]
 async fn get_device_logs(
     state: tauri::State<'_, Arc<AppState>>,
 ) -> Result<Vec<app::LogEntry>, String> {
-    Ok(state.get_device_logs().await)
+    let logs = state.get_device_logs().await;
+    println!("[Tauri] get_device_logs called - returning {} logs", logs.len());
+    Ok(logs)
 }
 
 #[tauri::command]
 async fn get_teams_logs(
     state: tauri::State<'_, Arc<AppState>>,
 ) -> Result<Vec<app::LogEntry>, String> {
-    Ok(state.get_teams_logs().await)
+    let logs = state.get_teams_logs().await;
+    println!("[Tauri] get_teams_logs called - returning {} logs", logs.len());
+    Ok(logs)
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

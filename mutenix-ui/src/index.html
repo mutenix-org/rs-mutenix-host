@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mutenix</title>
+    <script>
+        // Polyfill for Tauri invoke if not available
+        window.__TAURI_INVOKE__ = window.__TAURI_INVOKE__ || function(cmd, args) {
+            return window.__TAURI_INTERNALS__.invoke(cmd, args);
+        };
+    </script>
     <style>
         * {
             margin: 0;
@@ -13,9 +19,10 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f5f5f5;
             color: #333;
             padding: 20px;
+            margin: 0;
         }
 
         .container {
@@ -25,8 +32,12 @@
 
         .header {
             text-align: center;
-            color: white;
+            color: #333;
             margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .header h1 {
@@ -304,75 +315,97 @@
     </div>
 
     <script>
-        const { invoke } = window.__TAURI__.core;
-
-        async function updateStatus() {
-            try {
-                const status = await invoke('get_status');
-                
-                // Update device status
-                const deviceConnected = status.device.connected;
-                document.getElementById('device-indicator').className = 
-                    'status-indicator ' + (deviceConnected ? 'connected' : 'disconnected');
-                document.getElementById('device-connection').innerHTML = 
-                    `<span class="badge ${deviceConnected ? 'success' : 'danger'}">${deviceConnected ? 'Connected' : 'Disconnected'}</span>`;
-                document.getElementById('device-manufacturer').textContent = status.device.manufacturer || '-';
-                document.getElementById('device-product').textContent = status.device.product || '-';
-                document.getElementById('device-serial').textContent = status.device.serial_number || '-';
-
-                // Update Teams status
-                const teamsConnected = status.teams.connected;
-                document.getElementById('teams-indicator').className = 
-                    'status-indicator ' + (teamsConnected ? 'connected' : 'disconnected');
-                document.getElementById('teams-connection').innerHTML = 
-                    `<span class="badge ${teamsConnected ? 'success' : 'danger'}">${teamsConnected ? 'Connected' : 'Disconnected'}</span>`;
-                document.getElementById('teams-meeting').textContent = status.teams.in_meeting ? 'Yes' : 'No';
-                document.getElementById('teams-muted').textContent = status.teams.is_muted ? 'Yes' : 'No';
-                document.getElementById('teams-video').textContent = status.teams.is_video_on ? 'On' : 'Off';
-                document.getElementById('teams-hand').textContent = status.teams.is_hand_raised ? 'Raised' : 'Down';
-            } catch (error) {
-                console.error('Failed to update status:', error);
+        // Wait for Tauri IPC to be ready
+        async function initApp() {
+            // Try multiple methods to get invoke function
+            let invoke = window.__TAURI_INVOKE__;
+            
+            if (!invoke && window.__TAURI_INTERNALS__) {
+                invoke = (cmd, args) => window.__TAURI_INTERNALS__.invoke(cmd, args);
             }
-        }
-
-        async function updateLogs() {
-            try {
-                const deviceLogs = await invoke('get_device_logs');
-                const teamsLogs = await invoke('get_teams_logs');
-
-                // Update device logs
-                const deviceLogsEl = document.getElementById('device-logs');
-                deviceLogsEl.innerHTML = deviceLogs.slice(-50).reverse().map(log => 
-                    `<div class="log-entry">
-                        <span class="log-timestamp">${log.timestamp}</span>
-                        <span class="log-level ${log.level}">${log.level}</span>
-                        <span class="log-message">${log.message}</span>
-                    </div>`
-                ).join('');
-
-                // Update Teams logs
-                const teamsLogsEl = document.getElementById('teams-logs');
-                teamsLogsEl.innerHTML = teamsLogs.slice(-50).reverse().map(log => 
-                    `<div class="log-entry">
-                        <span class="log-timestamp">${log.timestamp}</span>
-                        <span class="log-level ${log.level}">${log.level}</span>
-                        <span class="log-message">${log.message}</span>
-                    </div>`
-                ).join('');
-            } catch (error) {
-                console.error('Failed to update logs:', error);
+            
+            if (!invoke) {
+                console.error('Tauri IPC not available, retrying...');
+                setTimeout(initApp, 100);
+                return;
             }
-        }
 
-        // Update every second
-        setInterval(() => {
+            console.log('Tauri IPC ready');
+
+            async function updateStatus() {
+                try {
+                    const status = await invoke('get_status', {});
+                    console.log('Status received:', status);
+                    
+                    // Update device status
+                    const deviceConnected = status.device.connected;
+                    document.getElementById('device-indicator').className = 
+                        'status-indicator ' + (deviceConnected ? 'connected' : 'disconnected');
+                    document.getElementById('device-connection').innerHTML = 
+                        `<span class="badge ${deviceConnected ? 'success' : 'danger'}">${deviceConnected ? 'Connected' : 'Disconnected'}</span>`;
+                    document.getElementById('device-manufacturer').textContent = status.device.manufacturer || '-';
+                    document.getElementById('device-product').textContent = status.device.product || '-';
+                    document.getElementById('device-serial').textContent = status.device.serial_number || '-';
+
+                    // Update Teams status
+                    const teamsConnected = status.teams.connected;
+                    document.getElementById('teams-indicator').className = 
+                        'status-indicator ' + (teamsConnected ? 'connected' : 'disconnected');
+                    document.getElementById('teams-connection').innerHTML = 
+                        `<span class="badge ${teamsConnected ? 'success' : 'danger'}">${teamsConnected ? 'Connected' : 'Disconnected'}</span>`;
+                    document.getElementById('teams-meeting').textContent = status.teams.in_meeting ? 'Yes' : 'No';
+                    document.getElementById('teams-muted').textContent = status.teams.is_muted ? 'Yes' : 'No';
+                    document.getElementById('teams-video').textContent = status.teams.is_video_on ? 'On' : 'Off';
+                    document.getElementById('teams-hand').textContent = status.teams.is_hand_raised ? 'Raised' : 'Down';
+                } catch (error) {
+                    console.error('Failed to update status:', error);
+                }
+            }
+
+            async function updateLogs() {
+                try {
+                    const deviceLogs = await invoke('get_device_logs', {});
+                    const teamsLogs = await invoke('get_teams_logs', {});
+
+                    // Update device logs
+                    const deviceLogsEl = document.getElementById('device-logs');
+                    deviceLogsEl.innerHTML = deviceLogs.slice(-50).reverse().map(log => 
+                        `<div class="log-entry">
+                            <span class="log-timestamp">${log.timestamp}</span>
+                            <span class="log-level ${log.level}">${log.level}</span>
+                            <span class="log-message">${log.message}</span>
+                        </div>`
+                    ).join('');
+
+                    // Update Teams logs
+                    const teamsLogsEl = document.getElementById('teams-logs');
+                    teamsLogsEl.innerHTML = teamsLogs.slice(-50).reverse().map(log => 
+                        `<div class="log-entry">
+                            <span class="log-timestamp">${log.timestamp}</span>
+                            <span class="log-level ${log.level}">${log.level}</span>
+                            <span class="log-message">${log.message}</span>
+                        </div>`
+                    ).join('');
+                } catch (error) {
+                    console.error('Failed to update logs:', error);
+                }
+            }
+
+            // Update every second
+            setInterval(() => {
+                updateStatus();
+                updateLogs();
+            }, 1000);
+
+            // Initial update
             updateStatus();
             updateLogs();
-        }, 1000);
+        }
 
-        // Initial update
-        updateStatus();
-        updateLogs();
+        // Start when page loads
+        window.addEventListener('load', () => {
+            setTimeout(initApp, 50);
+        });
     </script>
 </body>
 </html>
