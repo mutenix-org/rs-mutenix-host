@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "lib-dev",
+    "lib-teams",
+    "lib-webdev",
+    "mutenix-cli", "mutenix-ui",
+]
