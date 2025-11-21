@@ -1,0 +1,132 @@
+actions:
+- actions:
+  - activate_teams: false
+    meeting_action: toggle-mute
+  button_id: 1
+- actions:
+  - activate_teams: false
+    meeting_action: toggle-hand
+  button_id: 2
+- actions:
+  - activate_teams: true
+  button_id: 3
+- actions:
+  - activate_teams: false
+    teams_reaction:
+      reaction: like
+  button_id: 4
+- actions:
+  - activate_teams: false
+    meeting_action: leave-call
+  button_id: 5
+- actions:
+  - keyboard:
+      tap:
+        key: space
+        modifiers:
+        - control
+  button_id: 6
+- actions:
+  - keyboard:
+      type:
+        string: "Hello from Mutenix!"
+  button_id: 7
+- actions:
+  - mouse:
+      move:
+        x: 100
+        y: 50
+  button_id: 8
+- actions:
+  - mouse:
+      click:
+        button: left
+  button_id: 9
+- actions:
+  - command: "osascript -e 'display notification \"Button 10 pressed!\" with title \"Mutenix\"'"
+  button_id: 10
+device_identifications:
+- product_id: 24969
+  vendor_id: 7504
+- product_id: 24774
+  vendor_id: 7504
+- product_id: 1
+  vendor_id: 4617
+led_status:
+- button_id: 1
+  'off': false
+  teams_state:
+    color_off: red
+    color_on: green
+    teams_state: is-muted
+  webhook: false
+- button_id: 2
+  'off': false
+  teams_state:
+    color_off: black
+    color_on: yellow
+    teams_state: is-hand-raised
+  webhook: false
+- button_id: 3
+  'off': false
+  teams_state:
+    color_off: red
+    color_on: green
+    teams_state: is-video-on
+  webhook: false
+- button_id: 5
+  'off': false
+  teams_state:
+    color_off: black
+    color_on: green
+    teams_state: is-in-meeting
+  webhook: false
+- button_id: 6
+  teams_state:
+    color_off: blue
+    color_on: cyan
+    teams_state: is-in-meeting
+  webhook: false
+- button_id: 7
+  webhook: false
+- button_id: 8
+  teams_state:
+    color_off: black
+    color_on: white
+    teams_state: is-in-meeting
+  webhook: false
+- button_id: 9
+  webhook: false
+- button_id: 10
+  webhook: false
+logging:
+  console_enabled: false
+  console_level: info
+  file_backup_count: 5
+  file_enabled: true
+  file_level: info
+  file_max_size: 3145728
+  level: info
+  submodules: {}
+longpress_action:
+- actions:
+  - activate_teams: false
+    meeting_action: toggle-video
+  button_id: 3
+- actions:
+  - keyboard:
+      tap:
+        key: f11
+  button_id: 8
+- actions:
+  - mouse:
+      set:
+        x: 500
+        y: 500
+  button_id: 9
+version: 1
+virtual_keypad:
+  bind_address: 127.0.0.1
+  bind_port: 12909
+
+# yaml-language-server: $schema=https://github.com/mutenix-org/software-host/raw/refs/heads/main/docs/mutenix.schema.json
