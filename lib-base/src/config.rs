@@ -313,6 +313,8 @@ impl Config {
 
     /// Create a default configuration
     fn default_config() -> Self {
+        use crate::{ButtonAction, Action, MeetingActionType};
+        
         Self {
             version: 1,
             device_identifications: vec![
@@ -320,10 +322,149 @@ impl Config {
                     vendor_id: 7504,
                     product_id: 24969,
                 },
+                DeviceIdentification {
+                    vendor_id: 7504,
+                    product_id: 24774,
+                },
+                DeviceIdentification {
+                    vendor_id: 4617,
+                    product_id: 1,
+                },
             ],
-            actions: vec![],
-            longpress_action: vec![],
-            led_status: vec![],
+            actions: vec![
+                // Button 1: Toggle mute
+                ButtonAction {
+                    button_id: 1,
+                    actions: vec![Action {
+                        webhook: None,
+                        keyboard: None,
+                        mouse: None,
+                        teams_reaction: None,
+                        meeting_action: Some(MeetingActionType::ToggleMute),
+                        activate_teams: false,
+                        command: None,
+                    }],
+                },
+                // Button 2: Toggle hand
+                ButtonAction {
+                    button_id: 2,
+                    actions: vec![Action {
+                        webhook: None,
+                        keyboard: None,
+                        mouse: None,
+                        teams_reaction: None,
+                        meeting_action: Some(MeetingActionType::ToggleHand),
+                        activate_teams: false,
+                        command: None,
+                    }],
+                },
+                // Button 3: Activate Teams
+                ButtonAction {
+                    button_id: 3,
+                    actions: vec![Action {
+                        webhook: None,
+                        keyboard: None,
+                        mouse: None,
+                        teams_reaction: None,
+                        meeting_action: None,
+                        activate_teams: true,
+                        command: None,
+                    }],
+                },
+                // Button 4: Like reaction
+                ButtonAction {
+                    button_id: 4,
+                    actions: vec![Action {
+                        webhook: None,
+                        keyboard: None,
+                        mouse: None,
+                        teams_reaction: Some(crate::TeamsReact {
+                            reaction: crate::ReactionType::Like,
+                        }),
+                        meeting_action: None,
+                        activate_teams: false,
+                        command: None,
+                    }],
+                },
+                // Button 5: Leave call
+                ButtonAction {
+                    button_id: 5,
+                    actions: vec![Action {
+                        webhook: None,
+                        keyboard: None,
+                        mouse: None,
+                        teams_reaction: None,
+                        meeting_action: Some(MeetingActionType::LeaveCall),
+                        activate_teams: false,
+                        command: None,
+                    }],
+                },
+            ],
+            longpress_action: vec![
+                // Button 3 long press: Toggle video
+                ButtonAction {
+                    button_id: 3,
+                    actions: vec![Action {
+                        webhook: None,
+                        keyboard: None,
+                        mouse: None,
+                        teams_reaction: None,
+                        meeting_action: Some(MeetingActionType::ToggleVideo),
+                        activate_teams: false,
+                        command: None,
+                    }],
+                },
+            ],
+            led_status: vec![
+                // Button 1 LED: Mute status (green when muted, red when unmuted)
+                LedStatus {
+                    button_id: 1,
+                    teams_state: Some(TeamsStateConfig {
+                        teams_state: TeamsStateType::IsMuted,
+                        color_on: Some(LedColorConfig::Green),
+                        color_off: Some(LedColorConfig::Red),
+                    }),
+                    result_command: None,
+                    color_command: None,
+                    webhook: false,
+                },
+                // Button 2 LED: Hand raised status (yellow when raised, off when not)
+                LedStatus {
+                    button_id: 2,
+                    teams_state: Some(TeamsStateConfig {
+                        teams_state: TeamsStateType::IsHandRaised,
+                        color_on: Some(LedColorConfig::Yellow),
+                        color_off: Some(LedColorConfig::Black),
+                    }),
+                    result_command: None,
+                    color_command: None,
+                    webhook: false,
+                },
+                // Button 3 LED: Video status (green when on, red when off)
+                LedStatus {
+                    button_id: 3,
+                    teams_state: Some(TeamsStateConfig {
+                        teams_state: TeamsStateType::IsVideoOn,
+                        color_on: Some(LedColorConfig::Green),
+                        color_off: Some(LedColorConfig::Red),
+                    }),
+                    result_command: None,
+                    color_command: None,
+                    webhook: false,
+                },
+                // Button 5 LED: In meeting status (green when in meeting, off when not)
+                LedStatus {
+                    button_id: 5,
+                    teams_state: Some(TeamsStateConfig {
+                        teams_state: TeamsStateType::IsInMeeting,
+                        color_on: Some(LedColorConfig::Green),
+                        color_off: Some(LedColorConfig::Black),
+                    }),
+                    result_command: None,
+                    color_command: None,
+                    webhook: false,
+                },
+            ],
             logging: LoggingConfig::default(),
             virtual_keypad: VirtualKeypadConfig::default(),
         }
