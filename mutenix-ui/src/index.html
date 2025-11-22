@@ -580,6 +580,51 @@
             background: #e0e7ff;
             color: #4338ca;
             border: 1px solid #c7d2fe;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .action-type-badge:hover {
+            background: #c7d2fe;
+            border-color: #a5b4fc;
+        }
+
+        .action-type-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 0.25rem;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            min-width: 180px;
+            display: none;
+        }
+
+        .action-type-dropdown.show {
+            display: block;
+        }
+
+        .action-type-dropdown-item {
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+            font-size: 0.85rem;
+        }
+
+        .action-type-dropdown-item:first-child {
+            border-radius: 6px 6px 0 0;
+        }
+
+        .action-type-dropdown-item:last-child {
+            border-radius: 0 0 6px 6px;
+        }
+
+        .action-type-dropdown-item:hover {
+            background: #f3f4f6;
         }
 
         .form-row {
@@ -968,22 +1013,24 @@
             
             return actions.map((action, actionIndex) => {
                 const actionType = getActionType(action);
+                const dropdownId = `action-dropdown-${buttonIndex}-${actionIndex}`;
                 return `
                     <div class="action-item">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
-                            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                <span class="action-type-badge">${actionType}</span>
-                                <select onchange="changeActionType(${buttonIndex}, ${actionIndex}, this.value)" style="padding: 0.35rem 0.6rem; font-size: 0.85rem; border: 1px solid #e5e7eb; border-radius: 6px; background-color: white; cursor: pointer;">
-                                    <option value="">Change type...</option>
-                                    <option value="teams-action">Teams Action</option>
-                                    <option value="teams-reaction">Teams Reaction</option>
-                                    <option value="activate-teams">Activate Teams</option>
-                                    <option value="keyboard-tap">Keyboard Tap</option>
-                                    <option value="keyboard-type">Keyboard Type</option>
-                                    <option value="mouse-move">Mouse Move</option>
-                                    <option value="mouse-click">Mouse Click</option>
-                                    <option value="command">Command</option>
-                                </select>
+                            <div style="display: flex; align-items: center; gap: 0.5rem; position: relative;">
+                                <span class="action-type-badge" onclick="toggleActionTypeDropdown('${dropdownId}', event)">
+                                    ${actionType} ▾
+                                </span>
+                                <div id="${dropdownId}" class="action-type-dropdown">
+                                    <div class="action-type-dropdown-item" onclick="changeActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'teams-action', '${dropdownId}')">Teams Action</div>
+                                    <div class="action-type-dropdown-item" onclick="changeActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'teams-reaction', '${dropdownId}')">Teams Reaction</div>
+                                    <div class="action-type-dropdown-item" onclick="changeActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'activate-teams', '${dropdownId}')">Activate Teams</div>
+                                    <div class="action-type-dropdown-item" onclick="changeActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'keyboard-tap', '${dropdownId}')">Keyboard Tap</div>
+                                    <div class="action-type-dropdown-item" onclick="changeActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'keyboard-type', '${dropdownId}')">Keyboard Type</div>
+                                    <div class="action-type-dropdown-item" onclick="changeActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'mouse-move', '${dropdownId}')">Mouse Move</div>
+                                    <div class="action-type-dropdown-item" onclick="changeActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'mouse-click', '${dropdownId}')">Mouse Click</div>
+                                    <div class="action-type-dropdown-item" onclick="changeActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'command', '${dropdownId}')">Command</div>
+                                </div>
                             </div>
                             <button class="btn btn-sm btn-danger" onclick="removeAction(${buttonIndex}, ${actionIndex})">Remove</button>
                         </div>
@@ -1187,6 +1234,40 @@
             renderButtonActionsList();
         }
 
+        function toggleActionTypeDropdown(dropdownId, event) {
+            event.stopPropagation();
+            const dropdown = document.getElementById(dropdownId);
+            const allDropdowns = document.querySelectorAll('.action-type-dropdown');
+            
+            // Close all other dropdowns
+            allDropdowns.forEach(d => {
+                if (d.id !== dropdownId) {
+                    d.classList.remove('show');
+                }
+            });
+            
+            dropdown.classList.toggle('show');
+        }
+
+        function changeActionTypeFromDropdown(buttonIndex, actionIndex, type, dropdownId) {
+            changeActionType(buttonIndex, actionIndex, type);
+            document.getElementById(dropdownId).classList.remove('show');
+        }
+
+        function changeLongpressActionTypeFromDropdown(buttonIndex, actionIndex, type, dropdownId) {
+            changeLongpressActionType(buttonIndex, actionIndex, type);
+            document.getElementById(dropdownId).classList.remove('show');
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.action-type-badge')) {
+                document.querySelectorAll('.action-type-dropdown').forEach(d => {
+                    d.classList.remove('show');
+                });
+            }
+        });
+
         function updateActionField(buttonIndex, actionIndex, field, value) {
             currentConfig.actions[buttonIndex].actions[actionIndex][field] = value;
         }
@@ -1257,23 +1338,25 @@
             
             return actions.map((action, actionIndex) => {
                 const actionType = getActionType(action);
+                const dropdownId = `longpress-dropdown-${buttonIndex}-${actionIndex}`;
                 return `
                     <div class="action-item">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
-                            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                <span class="action-type-badge">${actionType}</span>
-                                <select onchange="changeLongpressActionType(${buttonIndex}, ${actionIndex}, this.value)" style="padding: 0.35rem 0.6rem; font-size: 0.85rem; border: 1px solid #e5e7eb; border-radius: 6px; background-color: white; cursor: pointer;">
-                                    <option value="">Change type...</option>
-                                    <option value="teams-action">Teams Action</option>
-                                    <option value="teams-reaction">Teams Reaction</option>
-                                    <option value="activate-teams">Activate Teams</option>
-                                    <option value="keyboard-tap">Keyboard Tap</option>
-                                    <option value="keyboard-type">Keyboard Type</option>
-                                    <option value="mouse-move">Mouse Move</option>
-                                    <option value="mouse-set">Mouse Set</option>
-                                    <option value="mouse-click">Mouse Click</option>
-                                    <option value="command">Command</option>
-                                </select>
+                            <div style="display: flex; align-items: center; gap: 0.5rem; position: relative;">
+                                <span class="action-type-badge" onclick="toggleActionTypeDropdown('${dropdownId}', event)">
+                                    ${actionType} ▾
+                                </span>
+                                <div id="${dropdownId}" class="action-type-dropdown">
+                                    <div class="action-type-dropdown-item" onclick="changeLongpressActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'teams-action', '${dropdownId}')">Teams Action</div>
+                                    <div class="action-type-dropdown-item" onclick="changeLongpressActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'teams-reaction', '${dropdownId}')">Teams Reaction</div>
+                                    <div class="action-type-dropdown-item" onclick="changeLongpressActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'activate-teams', '${dropdownId}')">Activate Teams</div>
+                                    <div class="action-type-dropdown-item" onclick="changeLongpressActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'keyboard-tap', '${dropdownId}')">Keyboard Tap</div>
+                                    <div class="action-type-dropdown-item" onclick="changeLongpressActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'keyboard-type', '${dropdownId}')">Keyboard Type</div>
+                                    <div class="action-type-dropdown-item" onclick="changeLongpressActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'mouse-move', '${dropdownId}')">Mouse Move</div>
+                                    <div class="action-type-dropdown-item" onclick="changeLongpressActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'mouse-set', '${dropdownId}')">Mouse Set</div>
+                                    <div class="action-type-dropdown-item" onclick="changeLongpressActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'mouse-click', '${dropdownId}')">Mouse Click</div>
+                                    <div class="action-type-dropdown-item" onclick="changeLongpressActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'command', '${dropdownId}')">Command</div>
+                                </div>
                             </div>
                             <button class="btn btn-sm btn-danger" onclick="removeLongpressActionItem(${buttonIndex}, ${actionIndex})">Remove</button>
                         </div>
