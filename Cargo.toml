@@ -6,3 +6,7 @@ members = ["lib-base",
     "lib-webdev",
     "mutenix-cli", "mutenix-ui",
 ]
+
+[profile.release]
+strip = true
+lto = true
