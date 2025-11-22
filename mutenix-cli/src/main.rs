@@ -58,8 +58,15 @@ struct MutenixCli {
 impl MutenixCli {
     async fn new(args: Args) -> Result<Self> {
         // Load configuration
-        let config = Config::from_file(&args.config)
-            .with_context(|| format!("Failed to load config from {:?}", args.config))?;
+        let config = if args.config.to_str() == Some(DEFAULT_CONFIG_PATH) {
+            // Use automatic search when default path is specified
+            Config::load()
+                .with_context(|| "Failed to load config from default locations")?
+        } else {
+            // Use explicit path when user provided one
+            Config::from_file(&args.config)
+                .with_context(|| format!("Failed to load config from {:?}", args.config))?
+        };
 
         // Create app state
         let app_state = AppState::new(env!("CARGO_PKG_VERSION").to_string());

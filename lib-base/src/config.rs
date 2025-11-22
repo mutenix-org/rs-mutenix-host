@@ -1,6 +1,18 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2025 Matthias Bilger <matthias@bilger.info>
 
+//! Configuration management for Mutenix
+//!
+//! This module provides configuration loading with automatic file discovery.
+//! Configuration files are searched in the following order:
+//! 1. Current directory (mutenix.yaml)
+//! 2. User's config directory:
+//!    - macOS: ~/Library/Application Support/mutenix/mutenix.yaml
+//!    - Linux: ~/.config/mutenix/mutenix.yaml
+//!    - Windows: %APPDATA%\mutenix\mutenix.yaml
+//!
+//! If no configuration file is found, a default one is created in the user's config directory.
+
 use anyhow::{Context, Result};
 use crate::ButtonAction;
 use mutenix_hid::LedColor;
@@ -220,6 +232,101 @@ impl Config {
         let config: Config = serde_yaml::from_str(&content)
             .with_context(|| "Failed to parse YAML config")?;
         Ok(config)
+    }
+
+    /// Find and load configuration file from multiple locations
+    /// Searches in order:
+    /// 1. Specified path (if provided)
+    /// 2. Current directory
+    /// 3. User's config directory (~/.config/mutenix/ on Linux/macOS, %APPDATA%\mutenix\ on Windows)
+    /// If no config file is found, creates a default one in the user's config directory
+    pub fn load() -> Result<Self> {
+        Self::load_with_name("mutenix.yaml")
+    }
+
+    /// Find and load configuration file with a specific filename
+    pub fn load_with_name(filename: &str) -> Result<Self> {
+        let search_paths = Self::get_config_search_paths(filename);
+        
+        // Try to find existing config file
+        for path in &search_paths {
+            if path.exists() {
+                return Self::from_file(path);
+            }
+        }
+        
+        // No config found, create default in user config directory
+        let config_dir = Self::get_user_config_dir()?;
+        let config_path = config_dir.join(filename);
+        
+        // Create directory if it doesn't exist
+        if !config_dir.exists() {
+            fs::create_dir_all(&config_dir)
+                .with_context(|| format!("Failed to create config directory: {:?}", config_dir))?;
+        }
+        
+        // Create default config
+        let default_config = Self::default_config();
+        let yaml = serde_yaml::to_string(&default_config)
+            .with_context(|| "Failed to serialize default config")?;
+        
+        fs::write(&config_path, yaml)
+            .with_context(|| format!("Failed to write default config to: {:?}", config_path))?;
+        
+        Ok(default_config)
+    }
+
+    /// Get search paths for configuration file
+    fn get_config_search_paths(filename: &str) -> Vec<std::path::PathBuf> {
+        let mut paths = Vec::new();
+        
+        // 1. Current directory
+        paths.push(std::path::PathBuf::from(filename));
+        
+        // 2. User config directory
+        if let Ok(config_dir) = Self::get_user_config_dir() {
+            paths.push(config_dir.join(filename));
+        }
+        
+        paths
+    }
+
+    /// Get user's configuration directory
+    fn get_user_config_dir() -> Result<std::path::PathBuf> {
+        let config_dir = if cfg!(target_os = "macos") {
+            dirs::config_dir()
+                .context("Failed to get config directory")?
+                .join("mutenix")
+        } else if cfg!(target_os = "windows") {
+            dirs::config_dir()
+                .context("Failed to get config directory")?
+                .join("mutenix")
+        } else {
+            // Linux and other Unix-like systems
+            dirs::config_dir()
+                .context("Failed to get config directory")?
+                .join("mutenix")
+        };
+        
+        Ok(config_dir)
+    }
+
+    /// Create a default configuration
+    fn default_config() -> Self {
+        Self {
+            version: 1,
+            device_identifications: vec![
+                DeviceIdentification {
+                    vendor_id: 7504,
+                    product_id: 24969,
+                },
+            ],
+            actions: vec![],
+            longpress_action: vec![],
+            led_status: vec![],
+            logging: LoggingConfig::default(),
+            virtual_keypad: VirtualKeypadConfig::default(),
+        }
     }
 
     /// Find button action by button ID

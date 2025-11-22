@@ -17,6 +17,7 @@ anyhow = "1.0"
 chrono = "0.4"
 enigo = "0.6"
 reqwest = { version = "0.12", features = ["json"] }
+dirs = "5.0"
 
 [build-dependencies]
 tauri-build = { version = "2.0", features = [] }

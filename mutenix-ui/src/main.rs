@@ -22,7 +22,6 @@ use teams_api::{
 use tokio::fs;
 use tokio::sync::RwLock;
 
-const DEFAULT_CONFIG_PATH: &str = "mutenix.yaml";
 const TOKEN_FILE: &str = ".mutenix_token";
 const TEAMS_WS_URI: &str = "ws://localhost:8124";
 
@@ -44,10 +43,15 @@ struct MutenixUi {
 }
 
 impl MutenixUi {
-    async fn new(config_path: PathBuf, teams_uri: String, token_file: PathBuf) -> Result<Self> {
+    async fn new(config_path: Option<PathBuf>, teams_uri: String, token_file: PathBuf) -> Result<Self> {
         // Load configuration
-        let config_data = Config::from_file(&config_path)
-            .with_context(|| format!("Failed to load config from {:?}", config_path))?;
+        let config_data = if let Some(path) = &config_path {
+            Config::from_file(path)
+                .with_context(|| format!("Failed to load config from {:?}", path))?
+        } else {
+            Config::load()
+                .with_context(|| "Failed to load config from default locations")?
+        };
         let config = Arc::new(RwLock::new(config_data));
 
         // Create app state
@@ -407,7 +411,7 @@ async fn save_token(token_file: &PathBuf, token: &str) -> Result<()> {
 // Shared state for config
 struct ConfigState {
     config: Arc<RwLock<Config>>,
-    config_path: PathBuf,
+    config_path: Option<PathBuf>,
 }
 
 // Tauri commands
@@ -453,11 +457,28 @@ async fn save_config(
     // Update in-memory config
     *config_state.config.write().await = config.clone();
     
+    // Determine config path
+    let config_path = if let Some(path) = &config_state.config_path {
+        path.clone()
+    } else {
+        // Get user config directory
+        let config_dir = dirs::config_dir()
+            .ok_or_else(|| "Failed to get config directory".to_string())?
+            .join("mutenix");
+        
+        // Create directory if needed
+        tokio::fs::create_dir_all(&config_dir)
+            .await
+            .map_err(|e| format!("Failed to create config directory: {}", e))?;
+        
+        config_dir.join("mutenix.yaml")
+    };
+    
     // Save to file
     let yaml = serde_yaml::to_string(&config)
         .map_err(|e| format!("Failed to serialize config: {}", e))?;
     
-    tokio::fs::write(&config_state.config_path, yaml)
+    tokio::fs::write(&config_path, yaml)
         .await
         .map_err(|e| format!("Failed to write config file: {}", e))?;
     
@@ -528,11 +549,10 @@ pub fn run() {
             // Initialize the backend
             let handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
-                let config_path = PathBuf::from(DEFAULT_CONFIG_PATH);
                 let token_file = PathBuf::from(TOKEN_FILE);
                 let teams_uri = TEAMS_WS_URI.to_string();
 
-                match MutenixUi::new(config_path.clone(), teams_uri, token_file).await {
+                match MutenixUi::new(None, teams_uri, token_file).await {
                     Ok(ui) => {
                         
                         // Register app state with Tauri BEFORE running
@@ -542,7 +562,7 @@ pub fn run() {
                         // Register config state
                         let config_state = Arc::new(ConfigState {
                             config: ui.config.clone(),
-                            config_path: config_path.clone(),
+                            config_path: None,
                         });
                         handle.manage(config_state);
 
