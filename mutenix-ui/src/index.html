@@ -1054,6 +1054,7 @@
                                     <div class="action-type-dropdown-item" onclick="changeActionTypeFromDropdown('${prefix}', ${buttonIndex}, ${actionIndex}, 'keyboard', '${dropdownId}')">Keyboard</div>
                                     <div class="action-type-dropdown-item" onclick="changeActionTypeFromDropdown('${prefix}', ${buttonIndex}, ${actionIndex}, 'mouse', '${dropdownId}')">Mouse</div>
                                     <div class="action-type-dropdown-item" onclick="changeActionTypeFromDropdown('${prefix}', ${buttonIndex}, ${actionIndex}, 'command', '${dropdownId}')">Command</div>
+                                    <div class="action-type-dropdown-item" onclick="changeActionTypeFromDropdown('${prefix}', ${buttonIndex}, ${actionIndex}, 'webhook', '${dropdownId}')">Webhook</div>
                                 </div>
                             </div>
                             <div style="flex: 1;">
@@ -1136,6 +1137,42 @@
                     <div class="form-group-inline">
                         <input type="text" value="${action.command}" 
                             onchange="updateActionField('${prefix}', ${buttonIndex}, ${actionIndex}, 'command', this.value)">
+                    </div>
+                `;
+            }
+            
+            // Webhook
+            if (action.webhook) {
+                const webhook = action.webhook;
+                const headersStr = JSON.stringify(webhook.headers || {});
+                const dataStr = webhook.data ? JSON.stringify(webhook.data) : '';
+                html += `
+                    <div style="display: grid; gap: 0.5rem;">
+                        <div class="form-group-inline">
+                            <label>URL:</label>
+                            <input type="text" value="${webhook.url || ''}" placeholder="https://example.com/webhook" style="flex: 1;"
+                                onchange="updateWebhookField('${prefix}', ${buttonIndex}, ${actionIndex}, 'url', this.value)">
+                        </div>
+                        <div class="form-group-inline">
+                            <label>Method:</label>
+                            <select onchange="updateWebhookField('${prefix}', ${buttonIndex}, ${actionIndex}, 'method', this.value)" style="max-width: 120px;">
+                                <option value="GET" ${webhook.method === 'GET' ? 'selected' : ''}>GET</option>
+                                <option value="POST" ${webhook.method === 'POST' ? 'selected' : ''}>POST</option>
+                                <option value="PUT" ${webhook.method === 'PUT' ? 'selected' : ''}>PUT</option>
+                                <option value="PATCH" ${webhook.method === 'PATCH' ? 'selected' : ''}>PATCH</option>
+                                <option value="DELETE" ${webhook.method === 'DELETE' ? 'selected' : ''}>DELETE</option>
+                            </select>
+                        </div>
+                        <div class="form-group-inline">
+                            <label>Headers (JSON):</label>
+                            <input type="text" value='${headersStr}' placeholder='{"Content-Type": "application/json"}' style="flex: 1;"
+                                onchange="updateWebhookHeaders('${prefix}', ${buttonIndex}, ${actionIndex}, this.value)">
+                        </div>
+                        <div class="form-group-inline">
+                            <label>Data (JSON):</label>
+                            <input type="text" value='${dataStr}' placeholder='{"key": "value"}' style="flex: 1;"
+                                onchange="updateWebhookData('${prefix}', ${buttonIndex}, ${actionIndex}, this.value)">
+                        </div>
                     </div>
                 `;
             }
@@ -1312,6 +1349,9 @@
                     break;
                 case 'command':
                     newAction.command = '';
+                    break;
+                case 'webhook':
+                    newAction.webhook = { url: '', method: 'GET', headers: {}, data: null };
                     break;
                 default:
                     return;
@@ -1491,6 +1531,43 @@
         function updateMouseRelease(prefix, buttonIndex, actionIndex, button) {
             const configArray = getConfigArray(prefix);
             configArray[buttonIndex].actions[actionIndex].mouse.release = { button };
+        }
+
+        // Webhook update functions
+        function updateWebhookField(prefix, buttonIndex, actionIndex, field, value) {
+            const configArray = getConfigArray(prefix);
+            if (!configArray[buttonIndex].actions[actionIndex].webhook) {
+                configArray[buttonIndex].actions[actionIndex].webhook = { url: '', method: 'GET', headers: {}, data: null };
+            }
+            configArray[buttonIndex].actions[actionIndex].webhook[field] = value;
+        }
+
+        function updateWebhookHeaders(prefix, buttonIndex, actionIndex, value) {
+            const configArray = getConfigArray(prefix);
+            try {
+                const headers = value.trim() === '' ? {} : JSON.parse(value);
+                if (!configArray[buttonIndex].actions[actionIndex].webhook) {
+                    configArray[buttonIndex].actions[actionIndex].webhook = { url: '', method: 'GET', headers: {}, data: null };
+                }
+                configArray[buttonIndex].actions[actionIndex].webhook.headers = headers;
+            } catch (error) {
+                console.error('Invalid JSON for headers:', error);
+                alert('Invalid JSON format for headers');
+            }
+        }
+
+        function updateWebhookData(prefix, buttonIndex, actionIndex, value) {
+            const configArray = getConfigArray(prefix);
+            try {
+                const data = value.trim() === '' ? null : JSON.parse(value);
+                if (!configArray[buttonIndex].actions[actionIndex].webhook) {
+                    configArray[buttonIndex].actions[actionIndex].webhook = { url: '', method: 'GET', headers: {}, data: null };
+                }
+                configArray[buttonIndex].actions[actionIndex].webhook.data = data;
+            } catch (error) {
+                console.error('Invalid JSON for data:', error);
+                alert('Invalid JSON format for data');
+            }
         }
 
         // Longpress actions management - now uses shared functions with wrappers

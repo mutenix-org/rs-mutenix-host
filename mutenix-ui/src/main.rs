@@ -33,7 +33,7 @@ struct StatusPayload {
 }
 
 struct MutenixUi {
-    config: Config,
+    config: Arc<RwLock<Config>>,
     device: Arc<HidDevice>,
     teams_client: Arc<TeamsWebSocketClient>,
     teams_state: TeamsState,
@@ -46,8 +46,9 @@ struct MutenixUi {
 impl MutenixUi {
     async fn new(config_path: PathBuf, teams_uri: String, token_file: PathBuf) -> Result<Self> {
         // Load configuration
-        let config = Config::from_file(&config_path)
+        let config_data = Config::from_file(&config_path)
             .with_context(|| format!("Failed to load config from {:?}", config_path))?;
+        let config = Arc::new(RwLock::new(config_data));
 
         // Create app state
         let app_state = AppState::new(env!("CARGO_PKG_VERSION").to_string());
@@ -56,7 +57,7 @@ impl MutenixUi {
         let saved_token = Arc::new(RwLock::new(load_token(&token_file).await));
 
         // Create HID device
-        let device_info = config.get_device_info();
+        let device_info = config.read().await.get_device_info();
         let device = Arc::new(HidDevice::new(device_info));
 
         // Create Teams state and client
@@ -187,15 +188,17 @@ impl MutenixUi {
 
                             let is_long_press = press_duration.as_millis() > 500;
 
+                            let config_guard = config.read().await;
                             let button_action = if is_long_press {
-                                config.find_longpress_action(button_id)
+                                config_guard.find_longpress_action(button_id).cloned()
                             } else {
-                                config.find_button_action(button_id)
+                                config_guard.find_button_action(button_id).cloned()
                             };
+                            drop(config_guard);
 
                             if let Some(action_config) = button_action {
                                 execute_button_actions(
-                                    action_config,
+                                    &action_config,
                                     is_long_press,
                                     button_id,
                                     teams_client.clone(),
@@ -338,7 +341,8 @@ impl MutenixUi {
                     first_run = false;
                 }
 
-                for led_status in &config.led_status {
+                let config_guard = config.read().await;
+                for led_status in &config_guard.led_status {
                     if let Some(teams_config) = &led_status.teams_state {
                         let is_active = match teams_config.teams_state {
                             TeamsStateType::IsMuted => meeting_state.is_muted,
@@ -378,8 +382,9 @@ impl MutenixUi {
                         }
                     }
                 }
+                drop(config_guard);
 
-                tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+                tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
             }
         });
     }
@@ -442,6 +447,7 @@ async fn get_config(
 #[tauri::command]
 async fn save_config(
     config_state: tauri::State<'_, Arc<ConfigState>>,
+    app_state: tauri::State<'_, Arc<AppState>>,
     config: Config,
 ) -> Result<(), String> {
     // Update in-memory config
@@ -454,6 +460,11 @@ async fn save_config(
     tokio::fs::write(&config_state.config_path, yaml)
         .await
         .map_err(|e| format!("Failed to write config file: {}", e))?;
+    
+    // Log successful config update
+    app_state
+        .add_device_log(LogLevel::Info, "Configuration updated and applied")
+        .await;
     
     Ok(())
 }
@@ -530,7 +541,7 @@ pub fn run() {
                         
                         // Register config state
                         let config_state = Arc::new(ConfigState {
-                            config: Arc::new(RwLock::new(ui.config.clone())),
+                            config: ui.config.clone(),
                             config_path: config_path.clone(),
                         });
                         handle.manage(config_state);
