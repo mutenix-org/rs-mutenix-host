@@ -186,7 +186,7 @@
             border-radius: 8px;
             padding: 0.75rem;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            max-height: 300px;
+            height: 300px;
             display: flex;
             flex-direction: column;
         }
@@ -332,7 +332,7 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0;
         }
 
         .form-group-inline label {
@@ -340,6 +340,7 @@
             white-space: nowrap;
             min-width: fit-content;
             font-size: 0.9rem;
+            font-weight: 500;
         }
 
         .form-group-inline input,
@@ -1016,7 +1017,7 @@
                 const dropdownId = `action-dropdown-${buttonIndex}-${actionIndex}`;
                 return `
                     <div class="action-item">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;">
                             <div style="display: flex; align-items: center; gap: 0.5rem; position: relative;">
                                 <span class="action-type-badge" onclick="toggleActionTypeDropdown('${dropdownId}', event)">
                                     ${actionType} ▾
@@ -1025,16 +1026,16 @@
                                     <div class="action-type-dropdown-item" onclick="changeActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'teams-action', '${dropdownId}')">Teams Action</div>
                                     <div class="action-type-dropdown-item" onclick="changeActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'teams-reaction', '${dropdownId}')">Teams Reaction</div>
                                     <div class="action-type-dropdown-item" onclick="changeActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'activate-teams', '${dropdownId}')">Activate Teams</div>
-                                    <div class="action-type-dropdown-item" onclick="changeActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'keyboard-tap', '${dropdownId}')">Keyboard Tap</div>
-                                    <div class="action-type-dropdown-item" onclick="changeActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'keyboard-type', '${dropdownId}')">Keyboard Type</div>
-                                    <div class="action-type-dropdown-item" onclick="changeActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'mouse-move', '${dropdownId}')">Mouse Move</div>
-                                    <div class="action-type-dropdown-item" onclick="changeActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'mouse-click', '${dropdownId}')">Mouse Click</div>
+                                    <div class="action-type-dropdown-item" onclick="changeActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'keyboard', '${dropdownId}')">Keyboard</div>
+                                    <div class="action-type-dropdown-item" onclick="changeActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'mouse', '${dropdownId}')">Mouse</div>
                                     <div class="action-type-dropdown-item" onclick="changeActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'command', '${dropdownId}')">Command</div>
                                 </div>
                             </div>
+                            <div style="flex: 1;">
+                                ${renderActionFields(action, buttonIndex, actionIndex)}
+                            </div>
                             <button class="btn btn-sm btn-danger" onclick="removeAction(${buttonIndex}, ${actionIndex})">Remove</button>
                         </div>
-                        ${renderActionFields(action, buttonIndex, actionIndex)}
                     </div>
                 `;
             }).join('');
@@ -1051,6 +1052,25 @@
             return 'Unknown';
         }
 
+        function getKeyboardSubType(action) {
+            if (!action.keyboard) return null;
+            if (action.keyboard.tap) return 'tap';
+            if (action.keyboard.type) return 'type';
+            if (action.keyboard.press) return 'press';
+            if (action.keyboard.release) return 'release';
+            return null;
+        }
+
+        function getMouseSubType(action) {
+            if (!action.mouse) return null;
+            if (action.mouse.move) return 'move';
+            if (action.mouse.set) return 'set';
+            if (action.mouse.click) return 'click';
+            if (action.mouse.hold) return 'hold';
+            if (action.mouse.release) return 'release';
+            return null;
+        }
+
         function renderActionFields(action, buttonIndex, actionIndex) {
             let html = '';
             
@@ -1058,7 +1078,6 @@
             if (action.meeting_action) {
                 html += `
                     <div class="form-group-inline">
-                        <label>Meeting Action:</label>
                         <select onchange="updateActionField(${buttonIndex}, ${actionIndex}, 'meeting_action', this.value)">
                             ${getMeetingActionOptions(action.meeting_action)}
                         </select>
@@ -1070,7 +1089,6 @@
             if (action.teams_reaction) {
                 html += `
                     <div class="form-group-inline">
-                        <label>Reaction:</label>
                         <select onchange="updateReaction(${buttonIndex}, ${actionIndex}, this.value)">
                             ${getReactionOptions(action.teams_reaction.reaction)}
                         </select>
@@ -1082,7 +1100,6 @@
             if (action.command) {
                 html += `
                     <div class="form-group-inline">
-                        <label>Command:</label>
                         <input type="text" value="${action.command}" 
                             onchange="updateActionField(${buttonIndex}, ${actionIndex}, 'command', this.value)">
                     </div>
@@ -1091,55 +1108,93 @@
             
             // Keyboard
             if (action.keyboard) {
+                const kbSubType = getKeyboardSubType(action);
+                html += `
+                    <div class="form-group-inline">
+                        <select onchange="changeKeyboardSubType(${buttonIndex}, ${actionIndex}, this.value)" style="max-width: 120px;">
+                            <option value="tap" ${kbSubType === 'tap' ? 'selected' : ''}>Tap</option>
+                            <option value="type" ${kbSubType === 'type' ? 'selected' : ''}>Type</option>
+                            <option value="press" ${kbSubType === 'press' ? 'selected' : ''}>Press</option>
+                            <option value="release" ${kbSubType === 'release' ? 'selected' : ''}>Release</option>
+                        </select>
+                `;
                 if (action.keyboard.tap) {
                     html += `
-                        <div class="form-group-inline">
-                            <label>Key:</label>
-                            <input type="text" value="${action.keyboard.tap.key || ''}" style="max-width: 100px;"
-                                onchange="updateKeyboardTap(${buttonIndex}, ${actionIndex}, 'key', this.value)">
-                            <label>Modifiers:</label>
-                            <input type="text" value="${(action.keyboard.tap.modifiers || []).join(', ')}"
-                                onchange="updateKeyboardTapModifiers(${buttonIndex}, ${actionIndex}, this.value)">
-                        </div>
+                        <input type="text" value="${action.keyboard.tap.key || ''}" placeholder="Key" style="max-width: 100px;"
+                            onchange="updateKeyboardTap(${buttonIndex}, ${actionIndex}, 'key', this.value)">
+                        <label>Modifiers:</label>
+                        <input type="text" value="${(action.keyboard.tap.modifiers || []).join(', ')}" placeholder="ctrl, shift, alt"
+                            onchange="updateKeyboardTapModifiers(${buttonIndex}, ${actionIndex}, this.value)">
                     `;
-                }
-                if (action.keyboard.type) {
+                } else if (action.keyboard.type) {
                     html += `
-                        <div class="form-group-inline">
-                            <label>Type String:</label>
-                            <input type="text" value="${action.keyboard.type.string || ''}"
-                                onchange="updateKeyboardType(${buttonIndex}, ${actionIndex}, this.value)">
-                        </div>
+                        <input type="text" value="${action.keyboard.type.string || ''}" placeholder="Text to type"
+                            onchange="updateKeyboardType(${buttonIndex}, ${actionIndex}, this.value)">
+                    `;
+                } else if (action.keyboard.press) {
+                    html += `
+                        <input type="text" value="${action.keyboard.press.key || ''}" placeholder="Key" style="max-width: 100px;"
+                            onchange="updateKeyboardPress(${buttonIndex}, ${actionIndex}, 'key', this.value)">
+                        <label>Modifiers:</label>
+                        <input type="text" value="${(action.keyboard.press.modifiers || []).join(', ')}" placeholder="ctrl, shift, alt"
+                            onchange="updateKeyboardPressModifiers(${buttonIndex}, ${actionIndex}, this.value)">
+                    `;
+                } else if (action.keyboard.release) {
+                    html += `
+                        <input type="text" value="${action.keyboard.release.key || ''}" placeholder="Key" style="max-width: 100px;"
+                            onchange="updateKeyboardRelease(${buttonIndex}, ${actionIndex}, 'key', this.value)">
+                        <label>Modifiers:</label>
+                        <input type="text" value="${(action.keyboard.release.modifiers || []).join(', ')}" placeholder="ctrl, shift, alt"
+                            onchange="updateKeyboardReleaseModifiers(${buttonIndex}, ${actionIndex}, this.value)">
                     `;
                 }
+                html += `</div>`;
             }
             
             // Mouse
             if (action.mouse) {
+                const mouseSubType = getMouseSubType(action);
+                html += `
+                    <div class="form-group-inline">
+                        <select onchange="changeMouseSubType(${buttonIndex}, ${actionIndex}, this.value)" style="max-width: 120px;">
+                            <option value="move" ${mouseSubType === 'move' ? 'selected' : ''}>Move</option>
+                            <option value="set" ${mouseSubType === 'set' ? 'selected' : ''}>Set Position</option>
+                            <option value="click" ${mouseSubType === 'click' ? 'selected' : ''}>Click</option>
+                            <option value="hold" ${mouseSubType === 'hold' ? 'selected' : ''}>Hold</option>
+                            <option value="release" ${mouseSubType === 'release' ? 'selected' : ''}>Release</option>
+                        </select>
+                `;
                 if (action.mouse.move) {
                     html += `
-                        <div class="form-group-inline">
-                            <label>Move X:</label>
-                            <input type="number" value="${action.mouse.move.x}" style="max-width: 100px;"
-                                onchange="updateMouseMove(${buttonIndex}, ${actionIndex}, 'x', parseInt(this.value))">
-                            <label>Y:</label>
-                            <input type="number" value="${action.mouse.move.y}" style="max-width: 100px;"
-                                onchange="updateMouseMove(${buttonIndex}, ${actionIndex}, 'y', parseInt(this.value))">
-                        </div>
+                        <label>X:</label>
+                        <input type="number" value="${action.mouse.move.x}" placeholder="X" style="max-width: 80px;"
+                            onchange="updateMouseMove(${buttonIndex}, ${actionIndex}, 'x', parseInt(this.value))">
+                        <label>Y:</label>
+                        <input type="number" value="${action.mouse.move.y}" placeholder="Y" style="max-width: 80px;"
+                            onchange="updateMouseMove(${buttonIndex}, ${actionIndex}, 'y', parseInt(this.value))">
                     `;
-                }
-                if (action.mouse.click) {
+                } else if (action.mouse.set) {
                     html += `
-                        <div class="form-group-inline">
-                            <label>Mouse Button:</label>
-                            <select onchange="updateMouseClick(${buttonIndex}, ${actionIndex}, this.value)">
-                                <option value="left" ${action.mouse.click.button === 'left' ? 'selected' : ''}>Left</option>
-                                <option value="right" ${action.mouse.click.button === 'right' ? 'selected' : ''}>Right</option>
-                                <option value="middle" ${action.mouse.click.button === 'middle' ? 'selected' : ''}>Middle</option>
-                            </select>
-                        </div>
+                        <label>X:</label>
+                        <input type="number" value="${action.mouse.set.x}" placeholder="X" style="max-width: 80px;"
+                            onchange="updateMouseSet(${buttonIndex}, ${actionIndex}, 'x', parseInt(this.value))">
+                        <label>Y:</label>
+                        <input type="number" value="${action.mouse.set.y}" placeholder="Y" style="max-width: 80px;"
+                            onchange="updateMouseSet(${buttonIndex}, ${actionIndex}, 'y', parseInt(this.value))">
+                    `;
+                } else if (action.mouse.click || action.mouse.hold || action.mouse.release) {
+                    const button = (action.mouse.click || action.mouse.hold || action.mouse.release).button;
+                    const updateFunc = action.mouse.click ? 'updateMouseClick' : (action.mouse.hold ? 'updateMouseHold' : 'updateMouseRelease');
+                    html += `
+                        <label>Button:</label>
+                        <select onchange="${updateFunc}(${buttonIndex}, ${actionIndex}, this.value)" style="max-width: 100px;">
+                            <option value="left" ${button === 'left' ? 'selected' : ''}>Left</option>
+                            <option value="right" ${button === 'right' ? 'selected' : ''}>Right</option>
+                            <option value="middle" ${button === 'middle' ? 'selected' : ''}>Middle</option>
+                        </select>
                     `;
                 }
+                html += `</div>`;
             }
             
             return html;
@@ -1211,16 +1266,10 @@
                 case 'activate-teams':
                     newAction.activate_teams = true;
                     break;
-                case 'keyboard-tap':
+                case 'keyboard':
                     newAction.keyboard = { tap: { key: 'space', modifiers: [] } };
                     break;
-                case 'keyboard-type':
-                    newAction.keyboard = { type: { string: '' } };
-                    break;
-                case 'mouse-move':
-                    newAction.mouse = { move: { x: 0, y: 0 } };
-                    break;
-                case 'mouse-click':
+                case 'mouse':
                     newAction.mouse = { click: { button: 'left' } };
                     break;
                 case 'command':
@@ -1276,6 +1325,49 @@
             currentConfig.actions[buttonIndex].actions[actionIndex].teams_reaction = { reaction };
         }
 
+        function changeKeyboardSubType(buttonIndex, actionIndex, subType) {
+            const action = currentConfig.actions[buttonIndex].actions[actionIndex];
+            delete action.keyboard;
+            switch(subType) {
+                case 'tap':
+                    action.keyboard = { tap: { key: 'space', modifiers: [] } };
+                    break;
+                case 'type':
+                    action.keyboard = { type: { string: '' } };
+                    break;
+                case 'press':
+                    action.keyboard = { press: { key: 'space', modifiers: [] } };
+                    break;
+                case 'release':
+                    action.keyboard = { release: { key: 'space', modifiers: [] } };
+                    break;
+            }
+            renderButtonActionsList();
+        }
+
+        function changeMouseSubType(buttonIndex, actionIndex, subType) {
+            const action = currentConfig.actions[buttonIndex].actions[actionIndex];
+            delete action.mouse;
+            switch(subType) {
+                case 'move':
+                    action.mouse = { move: { x: 0, y: 0 } };
+                    break;
+                case 'set':
+                    action.mouse = { set: { x: 0, y: 0 } };
+                    break;
+                case 'click':
+                    action.mouse = { click: { button: 'left' } };
+                    break;
+                case 'hold':
+                    action.mouse = { hold: { button: 'left' } };
+                    break;
+                case 'release':
+                    action.mouse = { release: { button: 'left' } };
+                    break;
+            }
+            renderButtonActionsList();
+        }
+
         function updateKeyboardTap(buttonIndex, actionIndex, field, value) {
             if (!currentConfig.actions[buttonIndex].actions[actionIndex].keyboard.tap) {
                 currentConfig.actions[buttonIndex].actions[actionIndex].keyboard.tap = {};
@@ -1295,6 +1387,36 @@
             currentConfig.actions[buttonIndex].actions[actionIndex].keyboard.type = { string: value };
         }
 
+        function updateKeyboardPress(buttonIndex, actionIndex, field, value) {
+            if (!currentConfig.actions[buttonIndex].actions[actionIndex].keyboard.press) {
+                currentConfig.actions[buttonIndex].actions[actionIndex].keyboard.press = {};
+            }
+            currentConfig.actions[buttonIndex].actions[actionIndex].keyboard.press[field] = value;
+        }
+
+        function updateKeyboardPressModifiers(buttonIndex, actionIndex, value) {
+            const modifiers = value.split(',').map(m => m.trim()).filter(m => m);
+            if (!currentConfig.actions[buttonIndex].actions[actionIndex].keyboard.press) {
+                currentConfig.actions[buttonIndex].actions[actionIndex].keyboard.press = {};
+            }
+            currentConfig.actions[buttonIndex].actions[actionIndex].keyboard.press.modifiers = modifiers;
+        }
+
+        function updateKeyboardRelease(buttonIndex, actionIndex, field, value) {
+            if (!currentConfig.actions[buttonIndex].actions[actionIndex].keyboard.release) {
+                currentConfig.actions[buttonIndex].actions[actionIndex].keyboard.release = {};
+            }
+            currentConfig.actions[buttonIndex].actions[actionIndex].keyboard.release[field] = value;
+        }
+
+        function updateKeyboardReleaseModifiers(buttonIndex, actionIndex, value) {
+            const modifiers = value.split(',').map(m => m.trim()).filter(m => m);
+            if (!currentConfig.actions[buttonIndex].actions[actionIndex].keyboard.release) {
+                currentConfig.actions[buttonIndex].actions[actionIndex].keyboard.release = {};
+            }
+            currentConfig.actions[buttonIndex].actions[actionIndex].keyboard.release.modifiers = modifiers;
+        }
+
         function updateMouseMove(buttonIndex, actionIndex, field, value) {
             if (!currentConfig.actions[buttonIndex].actions[actionIndex].mouse.move) {
                 currentConfig.actions[buttonIndex].actions[actionIndex].mouse.move = { x: 0, y: 0 };
@@ -1302,8 +1424,23 @@
             currentConfig.actions[buttonIndex].actions[actionIndex].mouse.move[field] = value;
         }
 
+        function updateMouseSet(buttonIndex, actionIndex, field, value) {
+            if (!currentConfig.actions[buttonIndex].actions[actionIndex].mouse.set) {
+                currentConfig.actions[buttonIndex].actions[actionIndex].mouse.set = { x: 0, y: 0 };
+            }
+            currentConfig.actions[buttonIndex].actions[actionIndex].mouse.set[field] = value;
+        }
+
         function updateMouseClick(buttonIndex, actionIndex, button) {
             currentConfig.actions[buttonIndex].actions[actionIndex].mouse.click = { button };
+        }
+
+        function updateMouseHold(buttonIndex, actionIndex, button) {
+            currentConfig.actions[buttonIndex].actions[actionIndex].mouse.hold = { button };
+        }
+
+        function updateMouseRelease(buttonIndex, actionIndex, button) {
+            currentConfig.actions[buttonIndex].actions[actionIndex].mouse.release = { button };
         }
 
         // Longpress actions management
@@ -1341,7 +1478,7 @@
                 const dropdownId = `longpress-dropdown-${buttonIndex}-${actionIndex}`;
                 return `
                     <div class="action-item">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;">
                             <div style="display: flex; align-items: center; gap: 0.5rem; position: relative;">
                                 <span class="action-type-badge" onclick="toggleActionTypeDropdown('${dropdownId}', event)">
                                     ${actionType} ▾
@@ -1350,17 +1487,16 @@
                                     <div class="action-type-dropdown-item" onclick="changeLongpressActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'teams-action', '${dropdownId}')">Teams Action</div>
                                     <div class="action-type-dropdown-item" onclick="changeLongpressActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'teams-reaction', '${dropdownId}')">Teams Reaction</div>
                                     <div class="action-type-dropdown-item" onclick="changeLongpressActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'activate-teams', '${dropdownId}')">Activate Teams</div>
-                                    <div class="action-type-dropdown-item" onclick="changeLongpressActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'keyboard-tap', '${dropdownId}')">Keyboard Tap</div>
-                                    <div class="action-type-dropdown-item" onclick="changeLongpressActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'keyboard-type', '${dropdownId}')">Keyboard Type</div>
-                                    <div class="action-type-dropdown-item" onclick="changeLongpressActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'mouse-move', '${dropdownId}')">Mouse Move</div>
-                                    <div class="action-type-dropdown-item" onclick="changeLongpressActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'mouse-set', '${dropdownId}')">Mouse Set</div>
-                                    <div class="action-type-dropdown-item" onclick="changeLongpressActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'mouse-click', '${dropdownId}')">Mouse Click</div>
+                                    <div class="action-type-dropdown-item" onclick="changeLongpressActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'keyboard', '${dropdownId}')">Keyboard</div>
+                                    <div class="action-type-dropdown-item" onclick="changeLongpressActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'mouse', '${dropdownId}')">Mouse</div>
                                     <div class="action-type-dropdown-item" onclick="changeLongpressActionTypeFromDropdown(${buttonIndex}, ${actionIndex}, 'command', '${dropdownId}')">Command</div>
                                 </div>
                             </div>
+                            <div style="flex: 1;">
+                                ${renderLongpressActionFields(action, buttonIndex, actionIndex)}
+                            </div>
                             <button class="btn btn-sm btn-danger" onclick="removeLongpressActionItem(${buttonIndex}, ${actionIndex})">Remove</button>
                         </div>
-                        ${renderLongpressActionFields(action, buttonIndex, actionIndex)}
                     </div>
                 `;
             }).join('');
@@ -1406,67 +1542,93 @@
             
             // Keyboard
             if (action.keyboard) {
+                const kbSubType = getKeyboardSubType(action);
+                html += `
+                    <div class="form-group-inline">
+                        <select onchange="changeLongpressKeyboardSubType(${buttonIndex}, ${actionIndex}, this.value)" style="max-width: 120px;">
+                            <option value="tap" ${kbSubType === 'tap' ? 'selected' : ''}>Tap</option>
+                            <option value="type" ${kbSubType === 'type' ? 'selected' : ''}>Type</option>
+                            <option value="press" ${kbSubType === 'press' ? 'selected' : ''}>Press</option>
+                            <option value="release" ${kbSubType === 'release' ? 'selected' : ''}>Release</option>
+                        </select>
+                `;
                 if (action.keyboard.tap) {
                     html += `
-                        <div class="form-group-inline">
-                            <label>Key:</label>
-                            <input type="text" value="${action.keyboard.tap.key || ''}" style="max-width: 100px;"
-                                onchange="updateLongpressKeyboardTap(${buttonIndex}, ${actionIndex}, 'key', this.value)">
-                            <label>Modifiers:</label>
-                            <input type="text" value="${(action.keyboard.tap.modifiers || []).join(', ')}"
-                                onchange="updateLongpressKeyboardTapModifiers(${buttonIndex}, ${actionIndex}, this.value)">
-                        </div>
+                        <input type="text" value="${action.keyboard.tap.key || ''}" placeholder="Key" style="max-width: 100px;"
+                            onchange="updateLongpressKeyboardTap(${buttonIndex}, ${actionIndex}, 'key', this.value)">
+                        <label>Modifiers:</label>
+                        <input type="text" value="${(action.keyboard.tap.modifiers || []).join(', ')}" placeholder="ctrl, shift, alt"
+                            onchange="updateLongpressKeyboardTapModifiers(${buttonIndex}, ${actionIndex}, this.value)">
                     `;
-                }
-                if (action.keyboard.type) {
+                } else if (action.keyboard.type) {
                     html += `
-                        <div class="form-group-inline">
-                            <label>Type String:</label>
-                            <input type="text" value="${action.keyboard.type.string || ''}"
-                                onchange="updateLongpressKeyboardType(${buttonIndex}, ${actionIndex}, this.value)">
-                        </div>
+                        <input type="text" value="${action.keyboard.type.string || ''}" placeholder="Text to type"
+                            onchange="updateLongpressKeyboardType(${buttonIndex}, ${actionIndex}, this.value)">
+                    `;
+                } else if (action.keyboard.press) {
+                    html += `
+                        <input type="text" value="${action.keyboard.press.key || ''}" placeholder="Key" style="max-width: 100px;"
+                            onchange="updateLongpressKeyboardPress(${buttonIndex}, ${actionIndex}, 'key', this.value)">
+                        <label>Modifiers:</label>
+                        <input type="text" value="${(action.keyboard.press.modifiers || []).join(', ')}" placeholder="ctrl, shift, alt"
+                            onchange="updateLongpressKeyboardPressModifiers(${buttonIndex}, ${actionIndex}, this.value)">
+                    `;
+                } else if (action.keyboard.release) {
+                    html += `
+                        <input type="text" value="${action.keyboard.release.key || ''}" placeholder="Key" style="max-width: 100px;"
+                            onchange="updateLongpressKeyboardRelease(${buttonIndex}, ${actionIndex}, 'key', this.value)">
+                        <label>Modifiers:</label>
+                        <input type="text" value="${(action.keyboard.release.modifiers || []).join(', ')}" placeholder="ctrl, shift, alt"
+                            onchange="updateLongpressKeyboardReleaseModifiers(${buttonIndex}, ${actionIndex}, this.value)">
                     `;
                 }
+                html += `</div>`;
             }
             
             // Mouse
             if (action.mouse) {
+                const mouseSubType = getMouseSubType(action);
+                html += `
+                    <div class="form-group-inline">
+                        <select onchange="changeLongpressMouseSubType(${buttonIndex}, ${actionIndex}, this.value)" style="max-width: 120px;">
+                            <option value="move" ${mouseSubType === 'move' ? 'selected' : ''}>Move</option>
+                            <option value="set" ${mouseSubType === 'set' ? 'selected' : ''}>Set Position</option>
+                            <option value="click" ${mouseSubType === 'click' ? 'selected' : ''}>Click</option>
+                            <option value="hold" ${mouseSubType === 'hold' ? 'selected' : ''}>Hold</option>
+                            <option value="release" ${mouseSubType === 'release' ? 'selected' : ''}>Release</option>
+                        </select>
+                `;
                 if (action.mouse.move) {
                     html += `
-                        <div class="form-group-inline">
-                            <label>Move X:</label>
-                            <input type="number" value="${action.mouse.move.x}" style="max-width: 100px;"
-                                onchange="updateLongpressMouseMove(${buttonIndex}, ${actionIndex}, 'x', parseInt(this.value))">
-                            <label>Y:</label>
-                            <input type="number" value="${action.mouse.move.y}" style="max-width: 100px;"
-                                onchange="updateLongpressMouseMove(${buttonIndex}, ${actionIndex}, 'y', parseInt(this.value))">
-                        </div>
+                        <label>X:</label>
+                        <input type="number" value="${action.mouse.move.x}" placeholder="X" style="max-width: 80px;"
+                            onchange="updateLongpressMouseMove(${buttonIndex}, ${actionIndex}, 'x', parseInt(this.value))">
+                        <label>Y:</label>
+                        <input type="number" value="${action.mouse.move.y}" placeholder="Y" style="max-width: 80px;"
+                            onchange="updateLongpressMouseMove(${buttonIndex}, ${actionIndex}, 'y', parseInt(this.value))">
                     `;
-                }
-                if (action.mouse.set) {
+                } else if (action.mouse.set) {
                     html += `
-                        <div class="form-group-inline">
-                            <label>Set X:</label>
-                            <input type="number" value="${action.mouse.set.x}" style="max-width: 100px;"
-                                onchange="updateLongpressMouseSet(${buttonIndex}, ${actionIndex}, 'x', parseInt(this.value))">
-                            <label>Y:</label>
-                            <input type="number" value="${action.mouse.set.y}" style="max-width: 100px;"
-                                onchange="updateLongpressMouseSet(${buttonIndex}, ${actionIndex}, 'y', parseInt(this.value))">
-                        </div>
+                        <label>X:</label>
+                        <input type="number" value="${action.mouse.set.x}" placeholder="X" style="max-width: 80px;"
+                            onchange="updateLongpressMouseSet(${buttonIndex}, ${actionIndex}, 'x', parseInt(this.value))">
+                        <label>Y:</label>
+                        <input type="number" value="${action.mouse.set.y}" placeholder="Y" style="max-width: 80px;"
+                            onchange="updateLongpressMouseSet(${buttonIndex}, ${actionIndex}, 'y', parseInt(this.value))">
                     `;
-                }
-                if (action.mouse.click) {
+                } else if (action.mouse.click || action.mouse.hold || action.mouse.release) {
+                    const button = (action.mouse.click || action.mouse.hold || action.mouse.release).button;
+                    const updateFunc = action.mouse.click ? 'updateLongpressMouseClick' : (action.mouse.hold ? 'updateLongpressMouseHold' : 'updateLongpressMouseRelease');
                     html += `
-                        <div class="form-group-inline">
-                            <label>Mouse Button:</label>
-                            <select onchange="updateLongpressMouseClick(${buttonIndex}, ${actionIndex}, this.value)">
-                                <option value="left" ${action.mouse.click.button === 'left' ? 'selected' : ''}>Left</option>
-                                <option value="right" ${action.mouse.click.button === 'right' ? 'selected' : ''}>Right</option>
-                                <option value="middle" ${action.mouse.click.button === 'middle' ? 'selected' : ''}>Middle</option>
-                            </select>
-                        </div>
+                        <label>Button:</label>
+                        <select onchange="${updateFunc}(${buttonIndex}, ${actionIndex}, this.value)" style="max-width: 100px;">
+                            <option value="left" ${button === 'left' ? 'selected' : ''}>Left</option>
+                            <option value="right" ${button === 'right' ? 'selected' : ''}>Right</option>
+                            <option value="middle" ${button === 'middle' ? 'selected' : ''}>Middle</option>
+                        </select>
                     `;
                 }
+                html += `</div>`;
             }
             
             return html;
@@ -1521,19 +1683,10 @@
                 case 'activate-teams':
                     newAction.activate_teams = true;
                     break;
-                case 'keyboard-tap':
+                case 'keyboard':
                     newAction.keyboard = { tap: { key: 'space', modifiers: [] } };
                     break;
-                case 'keyboard-type':
-                    newAction.keyboard = { type: { string: '' } };
-                    break;
-                case 'mouse-move':
-                    newAction.mouse = { move: { x: 0, y: 0 } };
-                    break;
-                case 'mouse-set':
-                    newAction.mouse = { set: { x: 0, y: 0 } };
-                    break;
-                case 'mouse-click':
+                case 'mouse':
                     newAction.mouse = { click: { button: 'left' } };
                     break;
                 case 'command':
@@ -1544,6 +1697,49 @@
             }
             
             currentConfig.longpress_action[buttonIndex].actions[actionIndex] = newAction;
+            renderLongpressActionsList();
+        }
+
+        function changeLongpressKeyboardSubType(buttonIndex, actionIndex, subType) {
+            const action = currentConfig.longpress_action[buttonIndex].actions[actionIndex];
+            delete action.keyboard;
+            switch(subType) {
+                case 'tap':
+                    action.keyboard = { tap: { key: 'space', modifiers: [] } };
+                    break;
+                case 'type':
+                    action.keyboard = { type: { string: '' } };
+                    break;
+                case 'press':
+                    action.keyboard = { press: { key: 'space', modifiers: [] } };
+                    break;
+                case 'release':
+                    action.keyboard = { release: { key: 'space', modifiers: [] } };
+                    break;
+            }
+            renderLongpressActionsList();
+        }
+
+        function changeLongpressMouseSubType(buttonIndex, actionIndex, subType) {
+            const action = currentConfig.longpress_action[buttonIndex].actions[actionIndex];
+            delete action.mouse;
+            switch(subType) {
+                case 'move':
+                    action.mouse = { move: { x: 0, y: 0 } };
+                    break;
+                case 'set':
+                    action.mouse = { set: { x: 0, y: 0 } };
+                    break;
+                case 'click':
+                    action.mouse = { click: { button: 'left' } };
+                    break;
+                case 'hold':
+                    action.mouse = { hold: { button: 'left' } };
+                    break;
+                case 'release':
+                    action.mouse = { release: { button: 'left' } };
+                    break;
+            }
             renderLongpressActionsList();
         }
 
@@ -1574,6 +1770,36 @@
             currentConfig.longpress_action[buttonIndex].actions[actionIndex].keyboard.type = { string: value };
         }
 
+        function updateLongpressKeyboardPress(buttonIndex, actionIndex, field, value) {
+            if (!currentConfig.longpress_action[buttonIndex].actions[actionIndex].keyboard.press) {
+                currentConfig.longpress_action[buttonIndex].actions[actionIndex].keyboard.press = {};
+            }
+            currentConfig.longpress_action[buttonIndex].actions[actionIndex].keyboard.press[field] = value;
+        }
+
+        function updateLongpressKeyboardPressModifiers(buttonIndex, actionIndex, value) {
+            const modifiers = value.split(',').map(m => m.trim()).filter(m => m);
+            if (!currentConfig.longpress_action[buttonIndex].actions[actionIndex].keyboard.press) {
+                currentConfig.longpress_action[buttonIndex].actions[actionIndex].keyboard.press = {};
+            }
+            currentConfig.longpress_action[buttonIndex].actions[actionIndex].keyboard.press.modifiers = modifiers;
+        }
+
+        function updateLongpressKeyboardRelease(buttonIndex, actionIndex, field, value) {
+            if (!currentConfig.longpress_action[buttonIndex].actions[actionIndex].keyboard.release) {
+                currentConfig.longpress_action[buttonIndex].actions[actionIndex].keyboard.release = {};
+            }
+            currentConfig.longpress_action[buttonIndex].actions[actionIndex].keyboard.release[field] = value;
+        }
+
+        function updateLongpressKeyboardReleaseModifiers(buttonIndex, actionIndex, value) {
+            const modifiers = value.split(',').map(m => m.trim()).filter(m => m);
+            if (!currentConfig.longpress_action[buttonIndex].actions[actionIndex].keyboard.release) {
+                currentConfig.longpress_action[buttonIndex].actions[actionIndex].keyboard.release = {};
+            }
+            currentConfig.longpress_action[buttonIndex].actions[actionIndex].keyboard.release.modifiers = modifiers;
+        }
+
         function updateLongpressMouseMove(buttonIndex, actionIndex, field, value) {
             if (!currentConfig.longpress_action[buttonIndex].actions[actionIndex].mouse.move) {
                 currentConfig.longpress_action[buttonIndex].actions[actionIndex].mouse.move = { x: 0, y: 0 };
@@ -1590,6 +1816,14 @@
 
         function updateLongpressMouseClick(buttonIndex, actionIndex, button) {
             currentConfig.longpress_action[buttonIndex].actions[actionIndex].mouse.click = { button };
+        }
+
+        function updateLongpressMouseHold(buttonIndex, actionIndex, button) {
+            currentConfig.longpress_action[buttonIndex].actions[actionIndex].mouse.hold = { button };
+        }
+
+        function updateLongpressMouseRelease(buttonIndex, actionIndex, button) {
+            currentConfig.longpress_action[buttonIndex].actions[actionIndex].mouse.release = { button };
         }
 
         // LED Status management
