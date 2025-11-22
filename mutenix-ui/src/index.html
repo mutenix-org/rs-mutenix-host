@@ -778,7 +778,7 @@
                         </p>
                         <div class="form-group">
                             <label for="config-yaml">Configuration (YAML)</label>
-                            <textarea id="config-yaml" class="code-editor"></textarea>
+                            <textarea id="config-yaml" class="code-editor" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
                         </div>
                     </div>
 
@@ -854,10 +854,30 @@
     </footer>
 
     <script>
+        // Utility function to add autocomplete/correction disabling attributes
+        function disableAutocomplete(element) {
+            if (element) {
+                element.setAttribute('autocomplete', 'off');
+                element.setAttribute('autocorrect', 'off');
+                element.setAttribute('autocapitalize', 'off');
+                element.setAttribute('spellcheck', 'false');
+            }
+        }
+
+        // Apply to all existing form fields on page load
+        function disableAutocompleteForAll() {
+            document.querySelectorAll('input, select, textarea').forEach(field => {
+                disableAutocomplete(field);
+            });
+        }
+
         // Tab functionality
         document.addEventListener('DOMContentLoaded', () => {
             const tabButtons = document.querySelectorAll('.tab-button');
             const tabContents = document.querySelectorAll('.tab-content');
+
+            // Disable autocomplete on all fields
+            disableAutocompleteForAll();
 
             tabButtons.forEach(button => {
                 button.addEventListener('click', () => {
@@ -935,6 +955,9 @@
             renderLongpressActionsList();
             // Render LED status
             renderLedStatusList();
+            
+            // Disable autocomplete on newly created fields
+            setTimeout(() => disableAutocompleteForAll(), 0);
         }
 
         // Device management
